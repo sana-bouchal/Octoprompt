@@ -11,4 +11,5 @@ export interface PromptAnalysis {
   passedRules: Rule[];
   failedRules: Rule[];
   suggestions: string[];
+  improvedPrompt?: string;
 }

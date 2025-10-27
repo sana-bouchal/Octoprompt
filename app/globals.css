@@ -10,6 +10,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Couleurs personnalisées OctoPrompt - Thème Marin */
+  --color-coral-300: #fca58f;
+  --color-coral-400: #fb8b6f;
+  --color-coral-500: #ff7350;
+  --color-coral-600: #e65a38;
+  --color-blueberry-400: #6b8cce;
+  --color-blueberry-500: #4a6fa5;
+  --color-blueberry-600: #2e5289;
 }
 
 @media (prefers-color-scheme: dark) {
