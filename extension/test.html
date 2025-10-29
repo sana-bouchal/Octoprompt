@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OctoPrompt - Page de Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f4d 100%);
+      color: white;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      background: linear-gradient(135deg, #60a5fa, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 18px;
+      color: #93c5fd;
+    }
+
+    .info-box {
+      background: rgba(96, 165, 250, 0.1);
+      border: 2px solid rgba(96, 165, 250, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .info-box h2 {
+      color: #60a5fa;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .info-box p {
+      color: #bfdbfe;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .info-box ul {
+      color: #bfdbfe;
+      margin-left: 20px;
+    }
+
+    .test-area {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(96, 165, 250, 0.3);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .test-area h3 {
+      color: #06b6d4;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid rgba(96, 165, 250, 0.3);
+      border-radius: 12px;
+      padding: 15px;
+      color: white;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.3s ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #06b6d4;
+    }
+
+    textarea::placeholder {
+      color: rgba(147, 197, 253, 0.5);
+    }
+
+    .examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .example-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .example-card:hover {
+      border-color: #06b6d4;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(6, 182, 212, 0.2);
+    }
+
+    .example-card h4 {
+      color: #60a5fa;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .example-card p {
+      color: #cbd5e1;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .score-low { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .score-medium { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+    .score-high { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #06b6d4;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🐙 OctoPrompt Test Page</h1>
+      <p>Testez l'extension sur cette page</p>
+    </div>
+
+    <div class="info-box">
+      <h2>ℹ️ Comment utiliser cette page</h2>
+      <p>Cette page vous permet de tester l'extension OctoPrompt sans avoir besoin d'aller sur ChatGPT ou Claude.</p>
+      <ul>
+        <li>✅ L'extension devrait s'activer automatiquement</li>
+        <li>✅ Écrivez dans le champ de texte ci-dessous</li>
+        <li>✅ Le tooltip d'analyse apparaîtra en bas à droite</li>
+        <li>✅ Essayez les exemples pour voir différents scores</li>
+      </ul>
+    </div>
+
+    <div class="test-area">
+      <h3>Zone de Test</h3>
+      <textarea 
+        id="prompt-textarea"
+        placeholder="Écrivez votre prompt ici... (ex: Explique-moi le cloud computing)"
+      ></textarea>
+    </div>
+
+    <div class="test-area">
+      <h3>📝 Exemples de Prompts</h3>
+      <p style="color: #93c5fd; margin-bottom: 15px;">Cliquez sur un exemple pour le tester :</p>
+      
+      <div class="examples">
+        <div class="example-card" onclick="setPrompt('Explique le cloud computing')">
+          <h4>Prompt Faible</h4>
+          <p>Explique le cloud computing</p>
+          <span class="score-badge score-low">Score: ~25</span>
+        </div>
+
+        <div class="example-card" onclick="setPrompt('Crée un logo moderne pour une startup tech avec des couleurs bleu et cyan')">
+          <h4>Prompt Moyen</h4>
+          <p>Crée un logo moderne pour une startup tech avec des couleurs bleu et cyan</p>
+          <span class="score-badge score-medium">Score: ~55</span>
+        </div>
+
+        <div class="example-card" onclick="setPrompt('Agis en tant qu\'expert en marketing digital. Analyse les tendances des réseaux sociaux en 2024 sous forme de liste structurée avec 5 points clés, destiné à des professionnels du marketing. Utilise un style professionnel et ajoute des exemples concrets pour chaque tendance.')">
+          <h4>Prompt Excellent</h4>
+          <p>Agis en tant qu'expert en marketing digital. Analyse les tendances des réseaux sociaux...</p>
+          <span class="score-badge score-high">Score: ~95</span>
+        </div>
+
+        <div class="example-card" onclick="setPrompt('Résume cet article')">
+          <h4>Prompt Très Faible</h4>
+          <p>Résume cet article</p>
+          <span class="score-badge score-low">Score: ~15</span>
+        </div>
+
+        <div class="example-card" onclick="setPrompt('Génère un plan de formation en Python pour débutants, structuré en 10 modules progressifs, avec des exercices pratiques pour chaque module')">
+          <h4>Prompt Bon</h4>
+          <p>Génère un plan de formation en Python pour débutants...</p>
+          <span class="score-badge score-medium">Score: ~70</span>
+        </div>
+
+        <div class="example-card" onclick="setPrompt('Agis en tant que nutritionniste expert. Crée un plan de repas hebdomadaire équilibré pour une personne végétarienne, sous forme de tableau structuré, adapté à un public soucieux de sa santé. Inclus les apports nutritionnels, les temps de préparation, et des alternatives pour chaque repas. Style professionnel et précis.')">
+          <h4>Prompt Optimal</h4>
+          <p>Agis en tant que nutritionniste expert. Crée un plan de repas hebdomadaire...</p>
+          <span class="score-badge score-high">Score: ~100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <h2>🎯 Critères d'Évaluation</h2>
+      <p>L'extension évalue votre prompt selon 7 critères pondérés :</p>
+      <ul>
+        <li><strong>Rôle Spécifique (20%)</strong> - "Agis en tant que..."</li>
+        <li><strong>Mots-clés de Style (20%)</strong> - professionnel, créatif, minimaliste...</li>
+        <li><strong>Longueur Optimale (15%)</strong> - Entre 10 et 200 mots</li>
+        <li><strong>Format de Sortie (15%)</strong> - liste, tableau, paragraphes...</li>
+        <li><strong>Verbes d'Action (15%)</strong> - génère, analyse, crée...</li>
+        <li><strong>Audience Cible (10%)</strong> - pour débutants, professionnels...</li>
+        <li><strong>Contraintes (5%)</strong> - maximum, minimum, en moins de...</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>Made with 💙 by <a href="https://github.com/sana-bouchal" target="_blank">Sana Bouchal</a></p>
+      <p style="margin-top: 10px;">
+        <a href="https://github.com/sana-bouchal/octoprompt" target="_blank">📦 Projet sur GitHub</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function setPrompt(text) {
+      const textarea = document.getElementById('prompt-textarea');
+      textarea.value = text;
+      textarea.focus();
+      // Déclencher l'événement input pour que l'extension détecte le changement
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  </script>
+</body>
+</html>

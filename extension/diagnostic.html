@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test OctoPrompt - Diagnostic</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #1a1f4d;
+      color: white;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 30px;
+    }
+    
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 15px;
+      border: 2px solid #60a5fa;
+      border-radius: 8px;
+      background: #0c1445;
+      color: white;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    
+    .status {
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    
+    .success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .info { background: rgba(96, 165, 250, 0.2); color: #60a5fa; }
+    
+    button {
+      background: #06b6d4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background: #0891b2;
+    }
+    
+    #logs {
+      background: #0c1445;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐙 OctoPrompt - Diagnostic Extension</h1>
+    
+    <div class="section">
+      <h2>📋 Instructions</h2>
+      <p>Cette page vous aide à diagnostiquer pourquoi l'extension ne fonctionne pas.</p>
+      <ol>
+        <li>Vérifiez que l'extension est chargée (voir ci-dessous)</li>
+        <li>Écrivez dans le champ de texte</li>
+        <li>Consultez les logs en bas de page</li>
+      </ol>
+    </div>
+    
+    <div class="section">
+      <h2>✅ Vérifications</h2>
+      <div id="extension-status" class="status info">
+        Vérification en cours...
+      </div>
+      <div id="page-info" class="status info" style="margin-top: 10px;">
+        URL: <span id="url"></span><br>
+        Hostname: <span id="hostname"></span>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>📝 Zone de Test</h2>
+      <p>Écrivez quelque chose ici (plus de 5 caractères) :</p>
+      <textarea 
+        id="test-textarea"
+        placeholder="Écrivez votre prompt ici... (ex: Explique-moi le cloud computing)"
+      ></textarea>
+      <button onclick="testAnalysis()">🔍 Forcer l'Analyse</button>
+    </div>
+    
+    <div class="section">
+      <h2>📊 Logs Console</h2>
+      <button onclick="clearLogs()">🗑️ Effacer</button>
+      <div id="logs"></div>
+    </div>
+  </div>
+
+  <script>
+    // Afficher les infos de la page
+    document.getElementById('url').textContent = window.location.href;
+    document.getElementById('hostname').textContent = window.location.hostname;
+    
+    // Logger personnalisé
+    const logsDiv = document.getElementById('logs');
+    function addLog(message, type = 'info') {
+      const time = new Date().toLocaleTimeString();
+      const color = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#60a5fa';
+      logsDiv.innerHTML += `<span style="color: ${color}">[${time}] ${message}</span>\n`;
+      logsDiv.scrollTop = logsDiv.scrollHeight;
+    }
+    
+    function clearLogs() {
+      logsDiv.innerHTML = '';
+    }
+    
+    // Vérifier si l'extension est chargée
+    setTimeout(() => {
+      const statusDiv = document.getElementById('extension-status');
+      
+      // Chercher le tooltip OctoPrompt
+      const tooltip = document.getElementById('octoprompt-tooltip');
+      
+      // Vérifier si le script content.js est chargé
+      const scripts = Array.from(document.querySelectorAll('script'));
+      const contentScriptLoaded = scripts.some(s => s.src && s.src.includes('content.js'));
+      
+      if (tooltip || contentScriptLoaded) {
+        statusDiv.className = 'status success';
+        statusDiv.textContent = '✅ Extension OctoPrompt détectée !';
+        addLog('Extension chargée avec succès', 'success');
+      } else {
+        statusDiv.className = 'status error';
+        statusDiv.innerHTML = `
+          ❌ Extension NON détectée<br>
+          <small>Vérifiez dans chrome://extensions/ que l'extension est activée</small>
+        `;
+        addLog('Extension non détectée', 'error');
+      }
+    }, 1000);
+    
+    // Écouter les changements dans le textarea
+    const textarea = document.getElementById('test-textarea');
+    textarea.addEventListener('input', (e) => {
+      addLog(`Texte saisi: "${e.target.value.substring(0, 30)}..."`, 'info');
+      
+      // Vérifier si le tooltip apparaît
+      setTimeout(() => {
+        const tooltip = document.getElementById('octoprompt-tooltip');
+        if (tooltip && tooltip.style.display !== 'none') {
+          addLog('✅ Tooltip OctoPrompt affiché !', 'success');
+        } else {
+          addLog('⚠️ Tooltip non affiché', 'error');
+        }
+      }, 600);
+    });
+    
+    function testAnalysis() {
+      const text = textarea.value;
+      addLog(`Test manuel avec: "${text}"`, 'info');
+      
+      if (text.length < 5) {
+        addLog('⚠️ Texte trop court (minimum 5 caractères)', 'error');
+      } else {
+        addLog('Longueur OK, l\'extension devrait analyser...', 'success');
+      }
+      
+      // Déclencher manuellement l'événement
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('keyup', { bubbles: true }));
+    }
+    
+    // Log initial
+    addLog('Page de diagnostic chargée', 'success');
+    addLog('Attendez 1 seconde pour la vérification de l\'extension...', 'info');
+  </script>
+</body>
+</html>

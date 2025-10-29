@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test OctoPrompt - Mode IA</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 36px;
+    }
+    
+    .test-section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      color: #60a5fa;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 15px;
+      border-radius: 12px;
+      border: 2px solid rgba(96, 165, 250, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 15px;
+    }
+    
+    textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #60a5fa;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .info {
+      background: rgba(6, 182, 212, 0.2);
+      border: 1px solid rgba(6, 182, 212, 0.5);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+    
+    .warning {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+    
+    code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .example {
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid #06b6d4;
+      padding: 10px 15px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐙 OctoPrompt - Test Mode IA</h1>
+    
+    <div class="info">
+      ℹ️ Cette page permet de tester l'extension OctoPrompt avec le nouveau Mode IA.
+      Tapez dans les zones de texte ci-dessous et observez les suggestions !
+    </div>
+
+    <div class="test-section">
+      <h2>📝 Test 1 : Prompt Simple</h2>
+      <div class="example">
+        <strong>Objectif :</strong> Tester la détection basique et l'amélioration automatique
+      </div>
+      <textarea id="test1" placeholder="Essayez : écris un article"></textarea>
+    </div>
+
+    <div class="test-section">
+      <h2>🎨 Test 2 : Prompt Créatif</h2>
+      <div class="example">
+        <strong>Objectif :</strong> Vérifier la détection du contexte créatif
+      </div>
+      <textarea id="test2" placeholder="Essayez : crée une image d'un coucher de soleil"></textarea>
+    </div>
+
+    <div class="test-section">
+      <h2>💻 Test 3 : Prompt Technique</h2>
+      <div class="example">
+        <strong>Objectif :</strong> Vérifier la détection du contexte technique
+      </div>
+      <textarea id="test3" placeholder="Essayez : code une fonction pour trier un tableau"></textarea>
+    </div>
+
+    <div class="test-section">
+      <h2>📊 Test 4 : Prompt Analyse</h2>
+      <div class="example">
+        <strong>Objectif :</strong> Vérifier la détection du contexte analytique
+      </div>
+      <textarea id="test4" placeholder="Essayez : analyse les tendances du marché"></textarea>
+    </div>
+
+    <div class="test-section">
+      <h2>✍️ Test 5 : Prompt Rédaction</h2>
+      <div class="example">
+        <strong>Objectif :</strong> Vérifier la détection du contexte rédactionnel
+      </div>
+      <textarea id="test5" placeholder="Essayez : rédige un email professionnel"></textarea>
+    </div>
+
+    <div class="test-section">
+      <h2>🎯 Test 6 : Prompt Complet (Score parfait)</h2>
+      <div class="example">
+        <strong>Objectif :</strong> Tester un prompt déjà bien structuré
+      </div>
+      <textarea id="test6" placeholder="Essayez un prompt avec rôle, action, format, audience...">Tu es un expert en marketing digital. Rédige un article complet sur les stratégies de content marketing. Structure ta réponse en 5 sections claires avec des exemples concrets. Le contenu est destiné à des entrepreneurs débutants. Limite le texte à 1500 mots maximum.</textarea>
+    </div>
+
+    <div class="warning">
+      ⚠️ <strong>Pour tester le Mode IA :</strong><br>
+      1. Assurez-vous que l'extension est chargée<br>
+      2. Cliquez sur l'icône 🐙 OctoPrompt<br>
+      3. Activez "Mode IA (GPT-4)"<br>
+      4. Entrez votre clé API OpenAI<br>
+      5. Revenez sur cette page et tapez dans les zones de texte
+    </div>
+
+    <div class="info">
+      💡 <strong>Observations à faire :</strong><br>
+      • Le badge indique-t-il le bon mode ? (🤖 Mode IA ou 📋 Mode Règles)<br>
+      • Les suggestions sont-elles contextuelles et pertinentes ?<br>
+      • Le prompt amélioré est-il cohérent et créatif ?<br>
+      • Le score reflète-t-il la qualité du prompt ?<br>
+      • La génération est-elle variée à chaque fois ?
+    </div>
+
+    <div class="footer">
+      Made with 💙 by Sana Bouchal | OctoPrompt v2.0
+    </div>
+  </div>
+
+  <script>
+    console.log('🐙 Page de test OctoPrompt chargée');
+    console.log('📍 Vérifiez que l\'extension est bien activée dans chrome://extensions/');
+    
+    // Ajouter des logs pour le debugging
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach((textarea, index) => {
+      textarea.addEventListener('input', () => {
+        console.log(`✏️ Input détecté dans Test ${index + 1}`);
+      });
+    });
+  </script>
+</body>
+</html>
