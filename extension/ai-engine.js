@@ -39,31 +39,21 @@ class AIEngine {
   }
 
   async analyzeWithGemini(prompt) {
-    const systemPrompt = `Tu es un expert en prompt engineering. Analyse ce prompt et retourne UNIQUEMENT un objet JSON valide sans aucun texte avant ou après, avec cette structure EXACTE :
+    const systemPrompt = `Analyse ce prompt et retourne un JSON valide :
 
 {
   "score": 75,
-  "passedRules": ["Rôle Spécifique", "Verbes d'Action"],
-  "failedRules": ["Format de Sortie", "Audience Cible"],
-  "suggestions": [
-    "Ajoute un format de sortie précis (liste, tableau, JSON, etc.)",
-    "Précise l'audience cible pour adapter le ton"
-  ],
-  "improvedPrompt": "Version complètement réécrite et améliorée du prompt original"
+  "passedRules": ["Verbes d'Action"],
+  "failedRules": ["Format de Sortie"],
+  "suggestions": ["Ajoute un format", "Précise l'audience"],
+  "improvedPrompt": "Version améliorée complète du prompt"
 }
 
-RÈGLES D'ANALYSE:
-- Score: nombre entre 0 et 100 (obligatoire)
-- passedRules: liste des règles respectées (peut être vide)
-- failedRules: liste des règles non respectées (peut être vide)
-- suggestions: conseils concrets et actionnables (minimum 2)
-- improvedPrompt: réécriture complète du prompt en français avec tous les éléments manquants
+Score: 0-100. Règles: Rôle, Style, Longueur, Format, Verbes, Audience, Contraintes.
 
-Règles possibles: "Rôle Spécifique", "Style ou Ton", "Longueur Optimale", "Format de Sortie", "Verbes d'Action", "Audience Cible", "Contraintes Spécifiques"
+Prompt: "${prompt.replace(/"/g, '\\"')}"
 
-Prompt à analyser: "${prompt.replace(/"/g, '\\"')}"
-
-Retourne UNIQUEMENT le JSON, rien d'autre.`;
+Retourne UNIQUEMENT le JSON complet.`;
 
     const response = await fetch(`${this.geminiURL}?key=${this.apiKey}`, {
       method: 'POST',
@@ -78,7 +68,7 @@ Retourne UNIQUEMENT le JSON, rien d'autre.`;
         }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 4096,
         },
         safetySettings: [
           {
@@ -110,6 +100,13 @@ Retourne UNIQUEMENT le JSON, rien d'autre.`;
 
     const data = await response.json();
     console.log('📦 Réponse Gemini complète:', JSON.stringify(data, null, 2));
+    
+    // Vérifier si la réponse a été tronquée
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason === 'MAX_TOKENS') {
+      console.warn('⚠️ Réponse Gemini tronquée (MAX_TOKENS atteint)');
+      console.log('💡 Tentative de parsing du JSON partiel...');
+    }
     
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
@@ -197,7 +194,8 @@ NE RETOURNE QUE LE JSON, rien d'autre.`;
         .trim();
       
       // Extraire le JSON de la réponse (accepte les accolades sur plusieurs lignes)
-      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+      let jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+      
       if (!jsonMatch) {
         console.error('❌ Pas de JSON trouvé dans la réponse IA');
         console.log('Contenu reçu:', content.substring(0, 200));
@@ -205,7 +203,39 @@ NE RETOURNE QUE LE JSON, rien d'autre.`;
         return null;
       }
 
-      const analysis = JSON.parse(jsonMatch[0]);
+      let jsonStr = jsonMatch[0];
+      
+      // Tenter de réparer un JSON tronqué
+      if (!jsonStr.endsWith('}')) {
+        console.warn('⚠️ JSON incomplet détecté, tentative de réparation...');
+        
+        // Compter les accolades ouvrantes et fermantes
+        const openBraces = (jsonStr.match(/\{/g) || []).length;
+        const closeBraces = (jsonStr.match(/\}/g) || []).length;
+        
+        // Fermer les tableaux ouverts
+        const openBrackets = (jsonStr.match(/\[/g) || []).length;
+        const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+        
+        // Ajouter les fermetures manquantes
+        if (openBrackets > closeBrackets) {
+          // Si on est dans un string, le fermer
+          const lastQuote = jsonStr.lastIndexOf('"');
+          const beforeLastQuote = jsonStr.substring(0, lastQuote);
+          const quoteCount = (beforeLastQuote.match(/"/g) || []).length;
+          
+          if (quoteCount % 2 !== 0) {
+            jsonStr += '"';
+          }
+          
+          jsonStr += ']'.repeat(openBrackets - closeBrackets);
+        }
+        
+        jsonStr += '}'.repeat(openBraces - closeBraces);
+        console.log('🔧 JSON réparé:', jsonStr.substring(jsonStr.length - 50));
+      }
+
+      const analysis = JSON.parse(jsonStr);
       
       // Validation de la structure avec valeurs par défaut
       if (typeof analysis.score === 'undefined' || analysis.score === null) {

@@ -635,7 +635,10 @@ function updateTooltip(analysis) {
       <div style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 12px; padding: 12px; margin-bottom: 15px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
           <span style="color: #06b6d4; font-size: 14px; font-weight: 600;">✨ Prompt Amélioré</span>
-          <button id="octoprompt-copy" style="background: #06b6d4; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">Copier</button>
+          <div style="display: flex; gap: 6px;">
+            <button id="octoprompt-copy" style="background: rgba(6, 182, 212, 0.3); color: #06b6d4; border: 1px solid #06b6d4; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;">📋 Copier</button>
+            <button id="octoprompt-paste" style="background: #06b6d4; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;">✨ Coller</button>
+          </div>
         </div>
         <div id="octoprompt-improved" style="color: #bfdbfe; font-size: 12px; line-height: 1.5; max-height: 150px; overflow-y: auto;">
           ${escapeHtml(analysis.improvedPrompt)}
@@ -679,8 +682,12 @@ function updateTooltip(analysis) {
     const btn = document.getElementById('octoprompt-copy');
     if (btn) {
       btn.textContent = '✓ Copié!';
-      setTimeout(() => { btn.textContent = 'Copier'; }, 2000);
+      setTimeout(() => { btn.textContent = '📋 Copier'; }, 2000);
     }
+  });
+  
+  document.getElementById('octoprompt-paste')?.addEventListener('click', () => {
+    pasteImprovedPrompt(analysis.improvedPrompt);
   });
 }
 
@@ -690,6 +697,74 @@ function hideTooltip() {
   }
   if (octopusButton) {
     octopusButton.style.display = 'none';
+  }
+}
+
+// ========== FONCTION POUR COLLER LE PROMPT AMÉLIORÉ ==========
+function pasteImprovedPrompt(improvedText) {
+  const input = findPromptInput();
+  
+  if (!input) {
+    console.error('❌ Impossible de trouver le champ de texte');
+    return;
+  }
+  
+  const btn = document.getElementById('octoprompt-paste');
+  
+  try {
+    // Détecter le type de champ (textarea ou contenteditable)
+    if (input.tagName === 'TEXTAREA' || input.tagName === 'INPUT') {
+      // Pour les textarea/input normaux
+      input.value = improvedText;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    } else if (input.isContentEditable || input.contentEditable === 'true') {
+      // Pour les div contenteditable (ChatGPT, Claude, etc.)
+      input.textContent = improvedText;
+      
+      // Déclencher les événements pour que l'interface détecte le changement
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+    }
+    
+    // Focus sur le champ
+    input.focus();
+    
+    // Mettre le curseur à la fin
+    if (window.getSelection && document.createRange) {
+      const range = document.createRange();
+      const sel = window.getSelection();
+      
+      if (input.childNodes.length > 0) {
+        range.selectNodeContents(input);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+    
+    // Feedback visuel
+    if (btn) {
+      btn.textContent = '✓ Collé!';
+      btn.style.background = '#10b981';
+      setTimeout(() => {
+        btn.textContent = '✨ Coller';
+        btn.style.background = '#06b6d4';
+      }, 2000);
+    }
+    
+    console.log('✅ Prompt amélioré collé dans le champ');
+    
+  } catch (error) {
+    console.error('❌ Erreur lors du collage:', error);
+    if (btn) {
+      btn.textContent = '❌ Erreur';
+      setTimeout(() => {
+        btn.textContent = '✨ Coller';
+      }, 2000);
+    }
   }
 }
 
