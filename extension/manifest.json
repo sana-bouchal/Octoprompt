@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OctoPrompt - Assistant IA",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Améliorez vos prompts IA en temps réel sur ChatGPT, Claude et autres plateformes IA",
   "permissions": [
     "activeTab",
@@ -42,7 +42,7 @@
         "https://bard.google.com/*",
         "file://*"
       ],
-      "js": ["templates.js", "history.js", "ai-engine.js", "content.js"],
+      "js": ["ai-engine.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_end",
       "match_about_blank": true,
@@ -57,7 +57,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/*", "library.html", "templates.js", "history.js", "library.js"],
+      "resources": ["icons/*"],
       "matches": ["<all_urls>"]
     }
   ]

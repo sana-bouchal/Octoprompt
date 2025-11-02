@@ -276,10 +276,9 @@ function generateImprovedPrompt(originalPrompt, failedRules) {
 }
 
 // ========== DÉTECTION DU CHAMP DE TEXTE ==========
+let lastFoundInput = null;
+
 function findPromptInput() {
-  // Debug: afficher l'URL actuelle
-  console.log('🐙 OctoPrompt - Recherche du champ de texte sur:', window.location.hostname);
-  
   // ChatGPT / OpenAI - Essayer plusieurs sélecteurs
   let input = document.querySelector('textarea[id*="prompt"]') ||
               document.querySelector('textarea[placeholder*="Message"]') ||
@@ -315,17 +314,16 @@ function findPromptInput() {
     const textareas = document.querySelectorAll('textarea');
     for (const textarea of textareas) {
       if (textarea.offsetWidth > 0 && textarea.offsetHeight > 0) {
-        console.log('🐙 Textarea trouvé (fallback):', textarea);
         input = textarea;
         break;
       }
     }
   }
   
-  if (input) {
+  // Logger uniquement si c'est un nouveau champ trouvé
+  if (input && input !== lastFoundInput) {
     console.log('🐙 Champ de texte trouvé:', input);
-  } else {
-    console.log('🐙 Aucun champ de texte trouvé');
+    lastFoundInput = input;
   }
   
   return input;
@@ -366,6 +364,23 @@ function updateTooltip(analysis) {
   if (!isEnabled) return;
   
   const tooltip = createTooltip();
+  
+  // Si analysis est null, afficher un loader
+  if (analysis === null) {
+    tooltip.innerHTML = `
+      <div style="text-align: center; padding: 30px;">
+        <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid rgba(96, 165, 250, 0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <div style="margin-top: 15px; color: #93c5fd; font-size: 14px;">🤖 L'IA réfléchit...</div>
+      </div>
+      <style>
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+    tooltip.style.display = 'block';
+    return;
+  }
   
   const getScoreColor = (score) => {
     if (score >= 80) return '#10b981';
@@ -467,6 +482,8 @@ function escapeHtml(text) {
 // ========== SURVEILLANCE DU CHAMP DE TEXTE ==========
 let currentInput = null;
 let debounceTimer = null;
+let lastAnalyzedText = '';
+let isAnalyzing = false;
 
 function attachToInput(input) {
   if (!input || currentInput === input) return;
@@ -477,13 +494,29 @@ function attachToInput(input) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       const text = input.value || input.textContent || '';
+      
+      // Éviter d'analyser le même texte ou si une analyse est en cours
+      if (text === lastAnalyzedText || isAnalyzing) {
+        return;
+      }
+      
       if (text.trim().length > 5) {
+        isAnalyzing = true;
+        lastAnalyzedText = text;
+        
+        // Afficher le loader pendant que l'IA réfléchit
+        if (aiModeEnabled) {
+          updateTooltip(null); // null = afficher le loader
+        }
+        
         const analysis = await analyzePrompt(text);
         updateTooltip(analysis);
+        isAnalyzing = false;
       } else {
         hideTooltip();
+        lastAnalyzedText = '';
       }
-    }, 500);
+    }, 800);
   };
   
   input.addEventListener('input', handleInput);
@@ -512,10 +545,9 @@ function initializeExtension() {
       const tryFindInput = () => {
         const input = findPromptInput();
         if (input) {
-          console.log('🐙 Attachement au champ de texte...');
+          console.log('🐙 Champ de texte attaché');
           attachToInput(input);
         } else {
-          console.log('🐙 Champ non trouvé, réessai dans 1 seconde...');
           setTimeout(tryFindInput, 1000);
         }
       };
@@ -527,7 +559,6 @@ function initializeExtension() {
       const observer = new MutationObserver(() => {
         const input = findPromptInput();
         if (input && input !== currentInput) {
-          console.log('🐙 Nouveau champ détecté !');
           attachToInput(input);
         }
       });
@@ -536,8 +567,6 @@ function initializeExtension() {
         childList: true,
         subtree: true
       });
-      
-      console.log('🐙 MutationObserver actif');
     }
   });
 }

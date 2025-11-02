@@ -4,9 +4,9 @@ class AIEngine {
   constructor() {
     this.apiKey = null;
     this.provider = 'gemini'; // 'gemini' ou 'openai'
-    this.model = 'gemini-1.5-flash'; // Modèle gratuit de Google
+    this.model = 'gemini-2.5-flash'; // Modèle gratuit de Google
     this.openaiModel = 'gpt-4o-mini';
-    this.geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    this.geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     this.openaiURL = 'https://api.openai.com/v1/chat/completions';
   }
 
@@ -39,24 +39,17 @@ class AIEngine {
   }
 
   async analyzeWithGemini(prompt) {
-    const systemPrompt = `Tu es un expert en prompt engineering. Analyse le prompt suivant et retourne UNIQUEMENT un objet JSON valide avec cette structure exacte :
+    const systemPrompt = `Analyse ce prompt et retourne UNIQUEMENT un JSON valide:
 {
   "score": 75,
-  "passedRules": ["Rôle Spécifique", "Verbes d'Action"],
-  "failedRules": ["Format de Sortie", "Audience Cible"],
-  "suggestions": [
-    "Ajoute un format de sortie précis (liste, tableau, etc.)",
-    "Précise l'audience cible pour mieux adapter le ton"
-  ],
-  "improvedPrompt": "Version améliorée du prompt avec tous les éléments manquants"
+  "passedRules": ["Rôle Spécifique"],
+  "failedRules": ["Format de Sortie"],
+  "suggestions": ["Ajoute un format de sortie"],
+  "improvedPrompt": "Version améliorée du prompt"
 }
 
-Le score doit être entre 0 et 100.
-Les règles possibles sont : "Rôle Spécifique", "Mots-clés de Style", "Longueur Optimale", "Format de Sortie", "Verbes d'Action", "Audience Cible", "Contraintes Spécifiques".
-Sois créatif et pertinent dans les suggestions en français.
-L'improvedPrompt doit être en français, cohérent avec le prompt original, et vraiment amélioré.
-
-Prompt à analyser: "${prompt}"`;
+Score: 0-100. Règles: Rôle Spécifique, Style, Longueur, Format, Verbes d'Action, Audience, Contraintes.
+Prompt: "${prompt}"`;
 
     const response = await fetch(`${this.geminiURL}?key=${this.apiKey}`, {
       method: 'POST',
@@ -71,7 +64,7 @@ Prompt à analyser: "${prompt}"`;
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1000,
+          maxOutputTokens: 2048,
         }
       })
     });
@@ -145,8 +138,11 @@ L'improvedPrompt doit être en français, cohérent avec le prompt original, et 
 
   parseAIResponse(content) {
     try {
-      // Extraire le JSON de la réponse (au cas où il y aurait du texte autour)
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Supprimer les backticks markdown si présents
+      let cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Extraire le JSON de la réponse
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         console.error('❌ Pas de JSON trouvé dans la réponse');
         return null;
@@ -160,7 +156,6 @@ L'improvedPrompt doit être en français, cohérent avec le prompt original, et 
         return null;
       }
 
-      console.log('✅ Analyse IA réussie:', analysis);
       return analysis;
     } catch (error) {
       console.error('❌ Erreur parsing JSON:', error);
