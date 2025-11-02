@@ -331,6 +331,202 @@ function findPromptInput() {
 
 // ========== INTERFACE UTILISATEUR ==========
 let tooltipElement = null;
+let octopusButton = null;
+let currentAnalysis = null;
+
+function createOctopusButton() {
+  if (octopusButton) return octopusButton;
+  
+  const button = document.createElement('div');
+  button.id = 'octoprompt-octopus';
+  button.style.cssText = `
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    left: auto !important;
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(135deg, #0c1445 0%, #1a1f4d 100%) !important;
+    border: 2px solid rgba(96, 165, 250, 0.5) !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    z-index: 999998 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 32px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.3s ease !important;
+    animation: bounce 2s infinite !important;
+  `;
+  
+  // VERSION 5: Mini-logo OctoPrompt
+  button.innerHTML = `
+    <svg width="45" height="45" viewBox="0 0 45 45">
+      <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="22.5" cy="22.5" r="20" fill="url(#logoGradient)" opacity="0.2"/>
+      <text x="22.5" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="url(#logoGradient)">🐙</text>
+      <circle cx="22.5" cy="22.5" r="19" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.5"/>
+    </svg>
+  `;
+  
+  /* VERSION 2: Poulpe SVG stylisé
+  button.innerHTML = `
+    <svg width="40" height="40" viewBox="0 0 40 40">
+      <defs>
+        <linearGradient id="octoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="20" cy="15" r="12" fill="url(#octoGradient)" opacity="0.9"/>
+      <ellipse cx="17" cy="14" rx="2" ry="3" fill="white"/>
+      <ellipse cx="23" cy="14" rx="2" ry="3" fill="white"/>
+      <path d="M 12 22 Q 10 30, 8 35" stroke="url(#octoGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M 16 24 Q 15 32, 14 37" stroke="url(#octoGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M 20 25 Q 20 33, 20 38" stroke="url(#octoGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M 24 24 Q 25 32, 26 37" stroke="url(#octoGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M 28 22 Q 30 30, 32 35" stroke="url(#octoGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>
+  `;
+  */
+  /* VERSION 1: Badge avec score dynamique
+  button.innerHTML = `
+    <div style="
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    ">
+      <div id="octo-score-badge" style="
+        font-size: 18px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      ">AI</div>
+      <div style="
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #10b981, #06b6d4);
+        border-radius: 50%;
+        border: 2px solid #0c1445;
+        font-size: 10px;
+        font-weight: bold;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+      " id="score-indicator">?</div>
+    </div>
+  `;
+  */
+  
+  /* VERSION 3: Indicateur lumineux
+  button.innerHTML = `
+    <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+      <div style="
+        font-size: 28px;
+      ">🐙</div>
+      <div id="light-indicator" style="
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 12px;
+        height: 12px;
+        background: linear-gradient(135deg, #10b981, #06b6d4);
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.8), 0 0 16px rgba(16, 185, 129, 0.4);
+        animation: pulse 1.5s infinite;
+      "></div>
+    </div>
+  `;
+  */
+  
+  /* VERSION 4: Badge "NEW"
+  button.innerHTML = `
+    <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+      <div style="font-size: 28px;">🐙</div>
+      <div style="
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: linear-gradient(135deg, #ec4899, #ef4444);
+        color: white;
+        font-size: 9px;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.6);
+        animation: pulse 2s infinite;
+      ">NEW</div>
+    </div>
+  `;
+  */
+  
+  /* VERSION 5: Mini-logo OctoPrompt
+  button.innerHTML = `
+    <svg width="45" height="45" viewBox="0 0 45 45">
+      <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="22.5" cy="22.5" r="20" fill="url(#logoGradient)" opacity="0.2"/>
+      <text x="22.5" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="url(#logoGradient)">🐙</text>
+      <circle cx="22.5" cy="22.5" r="19" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.5"/>
+    </svg>
+  `;
+  */
+  
+  button.title = 'OctoPrompt - Analyser mon prompt';
+  
+  // Animation bounce simple + pulse pour les badges
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    #octoprompt-octopus:hover {
+      transform: scale(1.1) !important;
+      box-shadow: 0 12px 40px rgba(96, 165, 250, 0.4) !important;
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Click event
+  button.addEventListener('click', () => {
+    const tooltip = document.getElementById('octoprompt-tooltip');
+    if (tooltip) {
+      const isVisible = tooltip.style.display !== 'none';
+      tooltip.style.display = isVisible ? 'none' : 'block';
+    }
+  });
+  
+  document.body.appendChild(button);
+  octopusButton = button;
+  return button;
+}
 
 function createTooltip() {
   if (tooltipElement) return tooltipElement;
@@ -339,8 +535,8 @@ function createTooltip() {
   tooltip.id = 'octoprompt-tooltip';
   tooltip.style.cssText = `
     position: fixed;
-    bottom: 80px;
-    right: 20px;
+    bottom: 100px;
+    right: 30px;
     min-width: 320px;
     max-width: 400px;
     background: linear-gradient(135deg, #0c1445 0%, #1a1f4d 100%);
@@ -363,10 +559,16 @@ function createTooltip() {
 function updateTooltip(analysis) {
   if (!isEnabled) return;
   
+  // Créer le bouton poulpe s'il n'existe pas
+  const octopus = createOctopusButton();
   const tooltip = createTooltip();
   
-  // Si analysis est null, afficher un loader
+  // Stocker l'analyse actuelle
+  currentAnalysis = analysis;
+  
+  // Si analysis est null (loading), afficher le loader dans le tooltip
   if (analysis === null) {
+    octopus.style.display = 'flex';
     tooltip.innerHTML = `
       <div style="text-align: center; padding: 30px;">
         <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid rgba(96, 165, 250, 0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
@@ -378,8 +580,20 @@ function updateTooltip(analysis) {
         }
       </style>
     `;
+    // Ouvrir automatiquement le tooltip pendant le chargement
     tooltip.style.display = 'block';
     return;
+  }
+  
+  // Afficher le bouton poulpe
+  octopus.style.display = 'flex';
+  
+  // Mettre à jour le score badge si présent (VERSION 1)
+  const scoreIndicator = document.getElementById('score-indicator');
+  if (scoreIndicator) {
+    scoreIndicator.textContent = analysis.score;
+    const color = analysis.score >= 80 ? '#10b981' : analysis.score >= 60 ? '#f97316' : '#ef4444';
+    scoreIndicator.style.background = `linear-gradient(135deg, ${color}, ${color === '#10b981' ? '#06b6d4' : color === '#f97316' ? '#f59e0b' : '#dc2626'})`;
   }
   
   const getScoreColor = (score) => {
@@ -449,7 +663,11 @@ function updateTooltip(analysis) {
   }
   
   tooltip.innerHTML = html;
-  tooltip.style.display = 'block';
+  // Préserver l'état d'ouverture : si le tooltip était ouvert, le garder ouvert
+  const wasOpen = tooltip.style.display === 'block';
+  if (wasOpen) {
+    tooltip.style.display = 'block';
+  }
   
   // Event listeners
   document.getElementById('octoprompt-close')?.addEventListener('click', () => {
@@ -469,6 +687,9 @@ function updateTooltip(analysis) {
 function hideTooltip() {
   if (tooltipElement) {
     tooltipElement.style.display = 'none';
+  }
+  if (octopusButton) {
+    octopusButton.style.display = 'none';
   }
 }
 
@@ -511,6 +732,13 @@ function attachToInput(input) {
         
         const analysis = await analyzePrompt(text);
         updateTooltip(analysis);
+        
+        // Garder le tooltip ouvert si c'était déjà ouvert
+        const tooltip = document.getElementById('octoprompt-tooltip');
+        if (tooltip && tooltip.style.display === 'block') {
+          // Le tooltip reste ouvert, on met juste à jour son contenu
+        }
+        
         isAnalyzing = false;
       } else {
         hideTooltip();
@@ -525,6 +753,10 @@ function attachToInput(input) {
 
 function initializeExtension() {
   console.log('🐙 OctoPrompt - Initialisation...');
+  
+  // Créer le poulpe et le tooltip dès le départ
+  createOctopusButton();
+  createTooltip();
   
   // Charger les préférences
   chrome.storage.sync.get(['autoAnalyze', 'aiMode', 'apiKey'], async (result) => {

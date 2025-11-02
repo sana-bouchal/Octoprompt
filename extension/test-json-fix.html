@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Correction JSON - Mode IA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #06b6d4;
+            margin-top: 0;
+        }
+        button {
+            background: #06b6d4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0891b2;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #06b6d4;
+            border-radius: 3px;
+        }
+        .success {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        pre {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .logs {
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test Correction JSON - Mode IA</h1>
+        <p style="text-align: center; color: #666;">
+            Test de la correction du parsing JSON pour le mode IA d'OctoPrompt
+        </p>
+
+        <!-- Configuration API -->
+        <div class="test-section">
+            <h3>1️⃣ Configuration API</h3>
+            <select id="provider" style="width: 100%; padding: 10px; margin: 10px 0;">
+                <option value="gemini">Gemini (gratuit)</option>
+                <option value="openai">OpenAI (payant)</option>
+            </select>
+            <input type="text" id="apiKey" placeholder="Entrez votre clé API">
+            <button onclick="saveConfig()">💾 Sauvegarder</button>
+            <div id="configResult"></div>
+        </div>
+
+        <!-- Test 1: JSON valide -->
+        <div class="test-section">
+            <h3>2️⃣ Test avec un prompt simple</h3>
+            <input type="text" id="testPrompt1" value="écris un poème">
+            <button onclick="testPrompt('testPrompt1', 'result1')">🧪 Tester</button>
+            <div id="result1"></div>
+        </div>
+
+        <!-- Test 2: Prompt complexe -->
+        <div class="test-section">
+            <h3>3️⃣ Test avec un prompt complexe</h3>
+            <input type="text" id="testPrompt2" value="En tant que développeur expert, crée une fonction JavaScript qui trie un tableau">
+            <button onclick="testPrompt('testPrompt2', 'result2')">🧪 Tester</button>
+            <div id="result2"></div>
+        </div>
+
+        <!-- Test 3: Parsing JSON -->
+        <div class="test-section">
+            <h3>4️⃣ Test du parsing JSON</h3>
+            <p>Test avec différents formats de réponse JSON</p>
+            <button onclick="testJSONParsing()">🔬 Tester le parsing</button>
+            <div id="result3"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📋 Console Logs</h3>
+            <div class="logs" id="logs">En attente de tests...</div>
+            <button onclick="clearLogs()">🗑️ Effacer les logs</button>
+        </div>
+    </div>
+
+    <script src="ai-engine.js"></script>
+    <script>
+        // Rediriger console.log vers notre div
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logsDiv = document.getElementById('logs');
+
+        function addLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#0f0' : '#0cf';
+            logsDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(args.join(' '), 'error');
+        };
+
+        function clearLogs() {
+            logsDiv.innerHTML = '';
+            addLog('Logs effacés', 'log');
+        }
+
+        // Sauvegarder la config
+        async function saveConfig() {
+            const provider = document.getElementById('provider').value;
+            const apiKey = document.getElementById('apiKey').value.trim();
+            
+            if (!apiKey) {
+                document.getElementById('configResult').innerHTML = 
+                    '<div class="result error">❌ Veuillez entrer une clé API</div>';
+                return;
+            }
+
+            aiEngine.provider = provider;
+            aiEngine.apiKey = apiKey;
+            
+            document.getElementById('configResult').innerHTML = 
+                `<div class="result success">✅ Configuration sauvegardée (${provider})</div>`;
+            
+            console.log(`✅ API configurée: ${provider}`);
+        }
+
+        // Tester un prompt
+        async function testPrompt(inputId, resultId) {
+            const prompt = document.getElementById(inputId).value;
+            const resultDiv = document.getElementById(resultId);
+            
+            if (!aiEngine.apiKey) {
+                resultDiv.innerHTML = '<div class="result error">❌ Veuillez configurer votre clé API d\'abord</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="result">⏳ Analyse en cours...</div>';
+            console.log(`🔍 Analyse du prompt: "${prompt}"`);
+
+            try {
+                const result = await aiEngine.analyzePrompt(prompt);
+                
+                if (result) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h4>✅ Analyse réussie!</h4>
+                            <p><strong>Score:</strong> ${result.score}/100</p>
+                            <p><strong>Règles validées:</strong> ${result.passedRules?.join(', ') || 'Aucune'}</p>
+                            <p><strong>Règles échouées:</strong> ${result.failedRules?.join(', ') || 'Aucune'}</p>
+                            <p><strong>Suggestions:</strong></p>
+                            <ul>${result.suggestions?.map(s => `<li>${s}</li>`).join('') || '<li>Aucune</li>'}</ul>
+                            <p><strong>Prompt amélioré:</strong></p>
+                            <pre>${result.improvedPrompt || 'Non disponible'}</pre>
+                        </div>
+                    `;
+                    console.log('✅ Résultat reçu:', result);
+                } else {
+                    resultDiv.innerHTML = '<div class="result error">❌ Échec de l\'analyse (voir logs)</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Erreur: ${error.message}</div>`;
+                console.error('❌ Erreur:', error);
+            }
+        }
+
+        // Test du parsing JSON
+        function testJSONParsing() {
+            const resultDiv = document.getElementById('result3');
+            const testCases = [
+                // JSON valide simple
+                {
+                    name: 'JSON simple',
+                    content: '{"score": 75, "passedRules": ["Test"], "failedRules": [], "suggestions": ["Ok"], "improvedPrompt": "Test"}'
+                },
+                // JSON avec markdown
+                {
+                    name: 'JSON avec markdown',
+                    content: '```json\n{"score": 80, "passedRules": [], "failedRules": [], "suggestions": ["Ok"], "improvedPrompt": "Test"}\n```'
+                },
+                // JSON avec texte avant
+                {
+                    name: 'JSON avec texte avant',
+                    content: 'Voici l\'analyse: {"score": 65, "suggestions": ["Test"], "improvedPrompt": "Amélioré"}'
+                },
+                // JSON invalide (manque score)
+                {
+                    name: 'JSON sans score (devrait échouer)',
+                    content: '{"suggestions": ["Test"], "improvedPrompt": "Test"}'
+                }
+            ];
+
+            let html = '<div class="result">';
+            
+            testCases.forEach(test => {
+                console.log(`\n🔬 Test: ${test.name}`);
+                const result = aiEngine.parseAIResponse(test.content);
+                
+                if (result) {
+                    html += `<p>✅ <strong>${test.name}:</strong> Succès (score: ${result.score})</p>`;
+                } else {
+                    html += `<p>❌ <strong>${test.name}:</strong> Échec</p>`;
+                }
+            });
+
+            html += '</div>';
+            resultDiv.innerHTML = html;
+        }
+
+        // Message de démarrage
+        console.log('🚀 Test du mode IA initialisé');
+        console.log('📝 Entrez votre clé API et lancez les tests');
+    </script>
+</body>
+</html>

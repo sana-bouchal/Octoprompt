@@ -39,17 +39,31 @@ class AIEngine {
   }
 
   async analyzeWithGemini(prompt) {
-    const systemPrompt = `Analyse ce prompt et retourne UNIQUEMENT un JSON valide:
+    const systemPrompt = `Tu es un expert en prompt engineering. Analyse ce prompt et retourne UNIQUEMENT un objet JSON valide sans aucun texte avant ou après, avec cette structure EXACTE :
+
 {
   "score": 75,
-  "passedRules": ["Rôle Spécifique"],
-  "failedRules": ["Format de Sortie"],
-  "suggestions": ["Ajoute un format de sortie"],
-  "improvedPrompt": "Version améliorée du prompt"
+  "passedRules": ["Rôle Spécifique", "Verbes d'Action"],
+  "failedRules": ["Format de Sortie", "Audience Cible"],
+  "suggestions": [
+    "Ajoute un format de sortie précis (liste, tableau, JSON, etc.)",
+    "Précise l'audience cible pour adapter le ton"
+  ],
+  "improvedPrompt": "Version complètement réécrite et améliorée du prompt original"
 }
 
-Score: 0-100. Règles: Rôle Spécifique, Style, Longueur, Format, Verbes d'Action, Audience, Contraintes.
-Prompt: "${prompt}"`;
+RÈGLES D'ANALYSE:
+- Score: nombre entre 0 et 100 (obligatoire)
+- passedRules: liste des règles respectées (peut être vide)
+- failedRules: liste des règles non respectées (peut être vide)
+- suggestions: conseils concrets et actionnables (minimum 2)
+- improvedPrompt: réécriture complète du prompt en français avec tous les éléments manquants
+
+Règles possibles: "Rôle Spécifique", "Style ou Ton", "Longueur Optimale", "Format de Sortie", "Verbes d'Action", "Audience Cible", "Contraintes Spécifiques"
+
+Prompt à analyser: "${prompt.replace(/"/g, '\\"')}"
+
+Retourne UNIQUEMENT le JSON, rien d'autre.`;
 
     const response = await fetch(`${this.geminiURL}?key=${this.apiKey}`, {
       method: 'POST',
@@ -63,22 +77,51 @@ Prompt: "${prompt}"`;
           }]
         }],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.3,
           maxOutputTokens: 2048,
-        }
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE"
+          }
+        ]
       })
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
       console.error('❌ Erreur Gemini API:', response.status, response.statusText);
+      console.error('Détails:', errorText);
       return null;
     }
 
     const data = await response.json();
+    console.log('📦 Réponse Gemini complète:', JSON.stringify(data, null, 2));
+    
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!content) {
       console.error('❌ Pas de contenu dans la réponse Gemini');
+      console.error('Structure reçue:', {
+        hasCandidates: !!data.candidates,
+        candidatesLength: data.candidates?.length,
+        firstCandidate: data.candidates?.[0],
+        finishReason: data.candidates?.[0]?.finishReason,
+        safetyRatings: data.candidates?.[0]?.safetyRatings
+      });
       return null;
     }
 
@@ -86,7 +129,8 @@ Prompt: "${prompt}"`;
   }
 
   async analyzeWithOpenAI(prompt) {
-    const systemPrompt = `Tu es un expert en prompt engineering. Analyse le prompt suivant et retourne UNIQUEMENT un objet JSON valide avec cette structure exacte :
+    const systemPrompt = `Tu es un expert en prompt engineering. Analyse le prompt suivant et retourne UNIQUEMENT un objet JSON valide avec cette structure exacte, sans texte avant ou après :
+
 {
   "score": 75,
   "passedRules": ["Rôle Spécifique", "Verbes d'Action"],
@@ -95,13 +139,20 @@ Prompt: "${prompt}"`;
     "Ajoute un format de sortie précis (liste, tableau, etc.)",
     "Précise l'audience cible pour mieux adapter le ton"
   ],
-  "improvedPrompt": "Version améliorée du prompt avec tous les éléments manquants"
+  "improvedPrompt": "Version complètement améliorée du prompt avec tous les éléments manquants"
 }
 
-Le score doit être entre 0 et 100.
-Les règles possibles sont : "Rôle Spécifique", "Mots-clés de Style", "Longueur Optimale", "Format de Sortie", "Verbes d'Action", "Audience Cible", "Contraintes Spécifiques".
-Sois créatif et pertinent dans les suggestions.
-L'improvedPrompt doit être en français, cohérent avec le prompt original, et vraiment amélioré.`;
+RÈGLES:
+- Le score DOIT être un nombre entre 0 et 100
+- passedRules et failedRules sont des listes de noms de règles
+- suggestions doit contenir au moins 2 conseils concrets
+- improvedPrompt doit être une réécriture complète en français
+
+Les règles possibles sont : "Rôle Spécifique", "Style ou Ton", "Longueur Optimale", "Format de Sortie", "Verbes d'Action", "Audience Cible", "Contraintes Spécifiques".
+
+Sois créatif et pertinent dans les suggestions. L'improvedPrompt doit être cohérent avec le prompt original et vraiment amélioré.
+
+NE RETOURNE QUE LE JSON, rien d'autre.`;
 
     const response = await fetch(this.openaiURL, {
       method: 'POST',
@@ -113,10 +164,11 @@ L'improvedPrompt doit être en français, cohérent avec le prompt original, et 
         model: this.openaiModel,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Prompt à analyser: "${prompt}"` }
+          { role: 'user', content: `Prompt à analyser: "${prompt.replace(/"/g, '\\"')}"` }
         ],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.3,
+        max_tokens: 1000,
+        response_format: { type: "json_object" }
       })
     });
 
@@ -138,27 +190,52 @@ L'improvedPrompt doit être en français, cohérent avec le prompt original, et 
 
   parseAIResponse(content) {
     try {
-      // Supprimer les backticks markdown si présents
-      let cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      // Supprimer les backticks markdown si présents (avant et après)
+      let cleanContent = content
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
       
-      // Extraire le JSON de la réponse
+      // Extraire le JSON de la réponse (accepte les accolades sur plusieurs lignes)
       const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.error('❌ Pas de JSON trouvé dans la réponse');
+        console.error('❌ Pas de JSON trouvé dans la réponse IA');
+        console.log('Contenu reçu:', content.substring(0, 200));
+        console.log('Contenu nettoyé:', cleanContent.substring(0, 200));
         return null;
       }
 
       const analysis = JSON.parse(jsonMatch[0]);
       
-      // Validation de la structure
-      if (!analysis.score || !analysis.suggestions || !analysis.improvedPrompt) {
-        console.error('❌ Structure JSON invalide');
+      // Validation de la structure avec valeurs par défaut
+      if (typeof analysis.score === 'undefined' || analysis.score === null) {
+        console.error('❌ Champ "score" manquant dans la réponse IA');
+        console.log('JSON reçu:', JSON.stringify(analysis, null, 2));
         return null;
       }
 
+      // Ajouter des valeurs par défaut si manquantes
+      analysis.passedRules = analysis.passedRules || [];
+      analysis.failedRules = analysis.failedRules || [];
+      analysis.suggestions = analysis.suggestions || [];
+      analysis.improvedPrompt = analysis.improvedPrompt || '';
+
+      // Vérifier que le score est valide
+      if (typeof analysis.score !== 'number' || analysis.score < 0 || analysis.score > 100) {
+        console.error('❌ Score invalide (doit être entre 0 et 100):', analysis.score);
+        return null;
+      }
+
+      console.log('✅ JSON parsé avec succès:', {
+        score: analysis.score,
+        suggestions: analysis.suggestions.length,
+        improvedPrompt: analysis.improvedPrompt ? 'présent' : 'absent'
+      });
+
       return analysis;
     } catch (error) {
-      console.error('❌ Erreur parsing JSON:', error);
+      console.error('❌ Erreur parsing JSON:', error.message);
+      console.log('Contenu qui a échoué:', content.substring(0, 300));
       return null;
     }
   }
