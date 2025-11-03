@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>🐙 OctoPrompt</h1>
-    <p>Donnez des bras à vos idées</p>
+    <p id="headerSubtitle">Donnez des bras à vos idées</p>
   </div>
 
   <div class="status">
@@ -187,16 +187,23 @@
       <span class="status-text" id="statusText">Extension active</span>
     </div>
     <div class="toggle-container">
-      <label class="toggle-label">Activer l'analyse automatique</label>
+      <label class="toggle-label" id="autoAnalyzeLabel">Activer l'analyse automatique</label>
       <label class="toggle-switch">
         <input type="checkbox" id="autoAnalyze" checked>
         <span class="slider"></span>
       </label>
     </div>
     <div class="toggle-container" style="margin-top: 10px;">
-      <label class="toggle-label">Mode IA</label>
+      <label class="toggle-label" id="aiModeLabel">Mode IA</label>
       <label class="toggle-switch">
         <input type="checkbox" id="aiMode">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toggle-container" style="margin-top: 10px;">
+      <label class="toggle-label" id="languageLabel">Langue: Français</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="languageToggle">
         <span class="slider"></span>
       </label>
     </div>

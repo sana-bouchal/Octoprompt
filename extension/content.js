@@ -4,107 +4,152 @@
 // ========== CONFIGURATION ==========
 let isEnabled = true;
 let aiModeEnabled = false;
+let currentLanguage = 'fr';
+
+// ========== TRADUCTIONS ==========
+const i18n = {
+  fr: {
+    rules: {
+      optimalLength: { name: 'Longueur Optimale', suggestion: 'Ajustez la longueur : ni trop court (min 5 mots), ni trop long (max 200 mots)' },
+      actionVerbs: { name: 'Verbes d\'Action', suggestion: 'Utilisez des verbes d\'action clairs (ex: "génère", "analyse", "rédige")' },
+      subjectClarity: { name: 'Clarté du Sujet', suggestion: 'Soyez plus précis sur ce que vous voulez' },
+      specificRole: { name: 'Rôle Spécifique', suggestion: 'Bonus : Ajoutez un rôle spécifique (ex: "Agis en tant que expert...")' },
+      styleTone: { name: 'Style ou Ton', suggestion: 'Bonus : Spécifiez un style ou ton (ex: "professionnel", "créatif")' },
+      outputFormat: { name: 'Format de Sortie', suggestion: 'Bonus : Indiquez le format souhaité (ex: "sous forme de liste")' },
+      targetAudience: { name: 'Audience Cible', suggestion: 'Bonus : Précisez l\'audience (ex: "pour des débutants")' },
+      constraints: { name: 'Contraintes', suggestion: 'Bonus : Ajoutez des contraintes spécifiques (ex: "max 500 mots")' }
+    },
+    ui: {
+      aiMode: '🤖 Mode IA',
+      rulesMode: '📋 Mode Règles',
+      title: '🐙 OctoPrompt',
+      improvedPrompt: '✨ Prompt Amélioré',
+      copy: '📋 Copier',
+      paste: '✨ Coller',
+      copied: '✓ Copié!',
+      suggestions: '💡 Suggestions',
+      aiThinking: '🤖 L\'IA réfléchit...'
+    }
+  },
+  en: {
+    rules: {
+      optimalLength: { name: 'Optimal Length', suggestion: 'Adjust length: not too short (min 5 words), not too long (max 200 words)' },
+      actionVerbs: { name: 'Action Verbs', suggestion: 'Use clear action verbs (e.g., "generate", "analyze", "write")' },
+      subjectClarity: { name: 'Subject Clarity', suggestion: 'Be more specific about what you want' },
+      specificRole: { name: 'Specific Role', suggestion: 'Bonus: Add a specific role (e.g., "Act as an expert...")' },
+      styleTone: { name: 'Style or Tone', suggestion: 'Bonus: Specify a style or tone (e.g., "professional", "creative")' },
+      outputFormat: { name: 'Output Format', suggestion: 'Bonus: Indicate desired format (e.g., "as a list")' },
+      targetAudience: { name: 'Target Audience', suggestion: 'Bonus: Specify the audience (e.g., "for beginners")' },
+      constraints: { name: 'Constraints', suggestion: 'Bonus: Add specific constraints (e.g., "max 500 words")' }
+    },
+    ui: {
+      aiMode: '🤖 AI Mode',
+      rulesMode: '📋 Rules Mode',
+      title: '🐙 OctoPrompt',
+      improvedPrompt: '✨ Improved Prompt',
+      copy: '📋 Copy',
+      paste: '✨ Paste',
+      copied: '✓ Copied!',
+      suggestions: '💡 Suggestions',
+      aiThinking: '🤖 AI is thinking...'
+    }
+  }
+};
+
+function t(key) {
+  const keys = key.split('.');
+  let value = i18n[currentLanguage];
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  return value || key;
+}
 
 // ========== RÈGLES D'ANALYSE ==========
 const PROMPT_RULES = [
   {
-    name: 'Longueur Optimale',
+    name: 'optimalLength',
     category: 'Essentiel',
     weight: 25,
     check: (prompt) => {
       const words = prompt.split(/\s+/).filter(w => w.length > 0);
       return words.length >= 5 && words.length <= 200;
-    },
-    suggestion: 'Ajustez la longueur : ni trop court (min 5 mots), ni trop long (max 200 mots)'
+    }
   },
   {
-    name: 'Verbes d\'Action',
+    name: 'actionVerbs',
     category: 'Essentiel',
     weight: 25,
     check: (prompt) => {
-      const actionVerbs = [
-        'génère', 'crée', 'analyse', 'synthétise', 'rédige', 'explique',
-        'compare', 'liste', 'décris', 'propose', 'développe', 'écris',
-        'fais', 'montre', 'donne', 'construis', 'code', 'dessine', 'imagine',
-        'conçois', 'élabore', 'produis', 'fournis'
-      ];
+      const actionVerbs = currentLanguage === 'fr'
+        ? ['génère', 'crée', 'analyse', 'synthétise', 'rédige', 'explique', 'compare', 'liste', 'décris', 'propose', 'développe', 'écris', 'fais', 'montre', 'donne', 'construis', 'code', 'dessine', 'imagine', 'conçois', 'élabore', 'produis', 'fournis']
+        : ['generate', 'create', 'analyze', 'synthesize', 'write', 'explain', 'compare', 'list', 'describe', 'propose', 'develop', 'do', 'make', 'show', 'give', 'build', 'code', 'draw', 'imagine', 'design', 'elaborate', 'produce', 'provide'];
       return actionVerbs.some(verb => prompt.toLowerCase().includes(verb));
-    },
-    suggestion: 'Utilisez des verbes d\'action clairs (ex: "génère", "analyse", "rédige")'
+    }
   },
   {
-    name: 'Clarté du Sujet',
+    name: 'subjectClarity',
     category: 'Essentiel',
     weight: 20,
     check: (prompt) => {
-      // Un prompt clair a au moins un nom commun significatif
       const words = prompt.split(/\s+/);
-      return words.length >= 3; // Au moins 3 mots pour être clair
-    },
-    suggestion: 'Soyez plus précis sur ce que vous voulez'
+      return words.length >= 3;
+    }
   },
   {
-    name: 'Rôle Spécifique',
+    name: 'specificRole',
     category: 'Bonus',
     weight: 10,
     check: (prompt) => {
-      const roleKeywords = ['agis en tant que', 'tu es un', 'tu es une', 'rôle :', 'joue le rôle', 'en tant que', 'expert', 'spécialiste'];
+      const roleKeywords = currentLanguage === 'fr'
+        ? ['agis en tant que', 'tu es un', 'tu es une', 'rôle :', 'joue le rôle', 'en tant que', 'expert', 'spécialiste']
+        : ['act as', 'you are a', 'you are an', 'role:', 'play the role', 'as a', 'expert', 'specialist'];
       return roleKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
-    },
-    suggestion: 'Bonus : Ajoutez un rôle spécifique (ex: "Agis en tant que expert...")'
+    }
   },
   {
-    name: 'Style ou Ton',
+    name: 'styleTone',
     category: 'Bonus',
     weight: 10,
     check: (prompt) => {
-      const styleKeywords = [
-        'photoréaliste', 'minimaliste', 'humoristique', 'professionnel',
-        'artistique', 'moderne', 'vintage', 'élégant', 'créatif', 'technique',
-        'simple', 'détaillé', 'formel', 'informel', 'sérieux', 'ludique'
-      ];
+      const styleKeywords = currentLanguage === 'fr'
+        ? ['photoréaliste', 'minimaliste', 'humoristique', 'professionnel', 'artistique', 'moderne', 'vintage', 'élégant', 'créatif', 'technique', 'simple', 'détaillé', 'formel', 'informel', 'sérieux', 'ludique']
+        : ['photorealistic', 'minimalist', 'humorous', 'professional', 'artistic', 'modern', 'vintage', 'elegant', 'creative', 'technical', 'simple', 'detailed', 'formal', 'informal', 'serious', 'playful'];
       return styleKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
-    },
-    suggestion: 'Bonus : Spécifiez un style ou ton (ex: "professionnel", "créatif")'
+    }
   },
   {
-    name: 'Format de Sortie',
+    name: 'outputFormat',
     category: 'Bonus',
     weight: 5,
     check: (prompt) => {
-      const formatKeywords = [
-        'sous forme de', 'en json', 'tableau', 'paragraphes', 'liste',
-        'points', 'étapes', 'format', 'structure', 'sections'
-      ];
+      const formatKeywords = currentLanguage === 'fr'
+        ? ['sous forme de', 'en json', 'tableau', 'paragraphes', 'liste', 'points', 'étapes', 'format', 'structure', 'sections']
+        : ['in the form of', 'as json', 'table', 'paragraphs', 'list', 'bullet points', 'steps', 'format', 'structure', 'sections'];
       return formatKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
-    },
-    suggestion: 'Bonus : Indiquez le format souhaité (ex: "sous forme de liste")'
+    }
   },
   {
-    name: 'Audience Cible',
+    name: 'targetAudience',
     category: 'Bonus',
     weight: 3,
     check: (prompt) => {
-      const audienceKeywords = [
-        'pour', 'audience', 'public', 'lecteur', 'utilisateur',
-        'débutant', 'expert', 'enfant', 'professionnel', 'client'
-      ];
+      const audienceKeywords = currentLanguage === 'fr'
+        ? ['pour', 'audience', 'public', 'lecteur', 'utilisateur', 'débutant', 'expert', 'enfant', 'professionnel', 'client']
+        : ['for', 'audience', 'reader', 'user', 'beginner', 'expert', 'child', 'professional', 'client'];
       return audienceKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
-    },
-    suggestion: 'Bonus : Précisez l\'audience (ex: "pour des débutants")'
+    }
   },
   {
-    name: 'Contraintes',
+    name: 'constraints',
     category: 'Bonus',
     weight: 2,
     check: (prompt) => {
-      const constraintKeywords = [
-        'maximum', 'minimum', 'environ', 'limite', 'restriction',
-        'en moins de', 'en plus de', 'entre', 'mots', 'caractères'
-      ];
+      const constraintKeywords = currentLanguage === 'fr'
+        ? ['maximum', 'minimum', 'environ', 'limite', 'restriction', 'en moins de', 'en plus de', 'entre', 'mots', 'caractères']
+        : ['maximum', 'minimum', 'approximately', 'limit', 'restriction', 'in less than', 'in more than', 'between', 'words', 'characters'];
       return constraintKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
-    },
-    suggestion: 'Bonus : Ajoutez des contraintes (ex: "en 100 mots maximum")'
+    }
   }
 ];
 
@@ -115,7 +160,7 @@ async function analyzePrompt(prompt) {
       score: 0,
       passedRules: [],
       failedRules: PROMPT_RULES,
-      suggestions: ['Veuillez entrer un prompt à analyser.']
+      suggestions: [currentLanguage === 'fr' ? 'Veuillez entrer un prompt à analyser.' : 'Please enter a prompt to analyze.']
     };
   }
 
@@ -140,7 +185,7 @@ async function analyzePrompt(prompt) {
   const achievedWeight = passedRules.reduce((sum, rule) => sum + rule.weight, 0);
   const score = Math.round((achievedWeight / totalWeight) * 100);
 
-  const suggestions = failedRules.map(rule => rule.suggestion);
+  const suggestions = failedRules.map(rule => t(`rules.${rule.name}.suggestion`));
   
   let improvedPrompt = score < 100 ? generateImprovedPrompt(prompt, failedRules) : undefined;
 
@@ -163,66 +208,77 @@ function generateImprovedPrompt(originalPrompt, failedRules) {
   let improved = originalPrompt.trim();
   
   // Détection du contexte du prompt original
-  const isCreativeTask = /image|design|créatif|créer|dessine|illustr/i.test(improved);
-  const isTechnicalTask = /code|programm|fonction|algorithme|technique|développ/i.test(improved);
-  const isAnalysisTask = /analys|étudi|examin|compar|évalu/i.test(improved);
-  const isWritingTask = /rédige|écris|article|texte|contenu/i.test(improved);
+  const isCreativeTask = currentLanguage === 'fr'
+    ? /image|design|créatif|créer|dessine|illustr/i.test(improved)
+    : /image|design|creative|create|draw|illustr/i.test(improved);
+  const isTechnicalTask = currentLanguage === 'fr'
+    ? /code|programm|fonction|algorithme|technique|développ/i.test(improved)
+    : /code|programm|function|algorithm|technical|develop/i.test(improved);
+  const isAnalysisTask = currentLanguage === 'fr'
+    ? /analys|étudi|examin|compar|évalu/i.test(improved)
+    : /analyz|stud|examin|compar|evaluat/i.test(improved);
+  const isWritingTask = currentLanguage === 'fr'
+    ? /rédige|écris|article|texte|contenu/i.test(improved)
+    : /write|article|text|content/i.test(improved);
   
   // Rôles variés selon le contexte
-  const roles = {
-    creative: [
-      'Tu es un designer créatif expérimenté.',
-      'En tant que directeur artistique,',
-      'Avec ton expertise en création de contenu visuel,'
-    ],
-    technical: [
-      'En tant que développeur senior,',
-      'Tu es un expert technique spécialisé.',
-      'Avec ton expérience en ingénierie logicielle,'
-    ],
-    analysis: [
-      'Tu es un analyste expert.',
-      'En tant que consultant spécialisé,',
-      'Avec ton regard d\'expert analytique,'
-    ],
-    writing: [
-      'Tu es un rédacteur professionnel.',
-      'En tant qu\'expert en communication,',
-      'Avec ton expérience en rédaction de contenu,'
-    ],
-    general: [
-      'Tu es un expert dans ton domaine.',
-      'En tant que professionnel qualifié,',
-      'Avec ton expertise approfondie,',
-      'Tu maîtrises parfaitement le sujet.'
-    ]
+  const roles = currentLanguage === 'fr' ? {
+    creative: ['Tu es un designer créatif expérimenté.', 'En tant que directeur artistique,', 'Avec ton expertise en création de contenu visuel,'],
+    technical: ['En tant que développeur senior,', 'Tu es un expert technique spécialisé.', 'Avec ton expérience en ingénierie logicielle,'],
+    analysis: ['Tu es un analyste expert.', 'En tant que consultant spécialisé,', 'Avec ton regard d\'expert analytique,'],
+    writing: ['Tu es un rédacteur professionnel.', 'En tant qu\'expert en communication,', 'Avec ton expérience en rédaction de contenu,'],
+    general: ['Tu es un expert dans ton domaine.', 'En tant que professionnel qualifié,', 'Avec ton expertise approfondie,', 'Tu maîtrises parfaitement le sujet.']
+  } : {
+    creative: ['You are an experienced creative designer.', 'As an art director,', 'With your expertise in visual content creation,'],
+    technical: ['As a senior developer,', 'You are a specialized technical expert.', 'With your software engineering experience,'],
+    analysis: ['You are an expert analyst.', 'As a specialized consultant,', 'With your expert analytical perspective,'],
+    writing: ['You are a professional writer.', 'As a communication expert,', 'With your content writing experience,'],
+    general: ['You are an expert in your field.', 'As a qualified professional,', 'With your in-depth expertise,', 'You have perfect mastery of the subject.']
   };
   
   // Verbes d'action variés selon le contexte
-  const actionVerbs = {
+  const actionVerbs = currentLanguage === 'fr' ? {
     creative: ['Conçois', 'Crée', 'Imagine', 'Développe', 'Élabore'],
     technical: ['Développe', 'Construis', 'Implémente', 'Code', 'Conçois'],
     analysis: ['Analyse', 'Examine', 'Étudie', 'Évalue', 'Décortique'],
     writing: ['Rédige', 'Compose', 'Écris', 'Formule', 'Produis'],
     general: ['Génère', 'Produis', 'Fournis', 'Élabore', 'Développe']
+  } : {
+    creative: ['Design', 'Create', 'Imagine', 'Develop', 'Elaborate'],
+    technical: ['Develop', 'Build', 'Implement', 'Code', 'Design'],
+    analysis: ['Analyze', 'Examine', 'Study', 'Evaluate', 'Break down'],
+    writing: ['Write', 'Compose', 'Draft', 'Formulate', 'Produce'],
+    general: ['Generate', 'Produce', 'Provide', 'Elaborate', 'Develop']
   };
   
   // Formats de sortie variés
-  const formats = [
+  const formats = currentLanguage === 'fr' ? [
     'Présente le résultat de façon structurée et détaillée',
     'Organise ta réponse en sections claires',
     'Structure la réponse avec des titres et sous-parties',
     'Fournis une réponse bien organisée et facile à suivre',
     'Présente l\'information de manière hiérarchisée'
+  ] : [
+    'Present the result in a structured and detailed way',
+    'Organize your response in clear sections',
+    'Structure the response with headings and subparts',
+    'Provide a well-organized and easy-to-follow response',
+    'Present the information in a hierarchical manner'
   ];
   
   // Conclusions variées
-  const conclusions = [
+  const conclusions = currentLanguage === 'fr' ? [
     'Assure-toi que le résultat soit complet et directement utilisable.',
     'Le résultat doit être précis et actionnable.',
     'Fournis tous les détails nécessaires pour une mise en œuvre immédiate.',
     'La réponse doit être exhaustive et pratique.',
     'Inclus tous les éléments essentiels pour un résultat optimal.'
+  ] : [
+    'Make sure the result is complete and directly usable.',
+    'The result must be precise and actionable.',
+    'Provide all necessary details for immediate implementation.',
+    'The response must be comprehensive and practical.',
+    'Include all essential elements for optimal results.'
   ];
   
   // Sélection aléatoire des éléments
@@ -236,35 +292,42 @@ function generateImprovedPrompt(originalPrompt, failedRules) {
   else if (isWritingTask) category = 'writing';
   
   // Ajout du rôle si manquant
-  const hasRole = failedRules.find(r => r.name === 'Rôle Spécifique');
+  const hasRole = failedRules.find(r => r.name === 'specificRole');
   if (hasRole) {
     const rolePrefix = randomElement(roles[category]);
     improved = `${rolePrefix} ${improved}`;
   }
   
   // Ajout du verbe d'action si manquant
-  const hasAction = failedRules.find(r => r.name === "Verbes d'Action");
-  if (hasAction && !/^(génère|crée|analyse|explique|rédige|développe|conçois)/i.test(improved)) {
+  const hasAction = failedRules.find(r => r.name === "actionVerbs");
+  const actionPattern = currentLanguage === 'fr'
+    ? /^(génère|crée|analyse|explique|rédige|développe|conçois)/i
+    : /^(generate|create|analyze|explain|write|develop|design)/i;
+  if (hasAction && !actionPattern.test(improved)) {
     const actionVerb = randomElement(actionVerbs[category]);
-    // Adapter le début du prompt
     improved = improved.charAt(0).toLowerCase() + improved.slice(1);
     improved = `${actionVerb} ${improved}`;
   }
   
   // Ajout du format si manquant
-  const hasFormat = failedRules.find(r => r.name === 'Format de Sortie');
+  const hasFormat = failedRules.find(r => r.name === 'outputFormat');
   if (hasFormat) {
     improved += `. ${randomElement(formats)}`;
   }
   
   // Ajout d'une audience si manquante et pertinent
-  const hasAudience = failedRules.find(r => r.name === 'Audience Cible');
+  const hasAudience = failedRules.find(r => r.name === 'targetAudience');
   if (hasAudience && Math.random() > 0.5) {
-    const audiences = [
+    const audiences = currentLanguage === 'fr' ? [
       'pour un public professionnel',
       'destiné à des utilisateurs avertis',
       'adapté à tous les niveaux',
       'pour une audience experte'
+    ] : [
+      'for a professional audience',
+      'intended for advanced users',
+      'suitable for all levels',
+      'for an expert audience'
     ];
     improved += `, ${randomElement(audiences)}`;
   }
@@ -572,7 +635,7 @@ function updateTooltip(analysis) {
     tooltip.innerHTML = `
       <div style="text-align: center; padding: 30px;">
         <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid rgba(96, 165, 250, 0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <div style="margin-top: 15px; color: #93c5fd; font-size: 14px;">🤖 L'IA réfléchit...</div>
+        <div style="margin-top: 15px; color: #93c5fd; font-size: 14px;">${t('ui.aiThinking')}</div>
       </div>
       <style>
         @keyframes spin {
@@ -606,13 +669,13 @@ function updateTooltip(analysis) {
   
   // Badge pour indiquer le mode utilisé
   const modeBadge = aiModeEnabled 
-    ? '<span style="background: linear-gradient(135deg, #8b5cf6, #ec4899); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">🤖 Mode IA</span>'
-    : '<span style="background: rgba(100, 116, 139, 0.5); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">📋 Mode Règles</span>';
+    ? `<span style="background: linear-gradient(135deg, #8b5cf6, #ec4899); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">${t('ui.aiMode')}</span>`
+    : `<span style="background: rgba(100, 116, 139, 0.5); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">${t('ui.rulesMode')}</span>`;
   
   let html = `
     <div style="margin-bottom: 15px;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-        <h3 style="margin: 0; color: #60a5fa; font-size: 16px;">🐙 OctoPrompt</h3>
+        <h3 style="margin: 0; color: #60a5fa; font-size: 16px;">${t('ui.title')}</h3>
         <div style="display: flex; align-items: center; gap: 8px;">
           ${modeBadge}
           <button id="octoprompt-close" style="background: none; border: none; color: #64748b; font-size: 20px; cursor: pointer;">×</button>
@@ -634,10 +697,10 @@ function updateTooltip(analysis) {
     html += `
       <div style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 12px; padding: 12px; margin-bottom: 15px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <span style="color: #06b6d4; font-size: 14px; font-weight: 600;">✨ Prompt Amélioré</span>
+          <span style="color: #06b6d4; font-size: 14px; font-weight: 600;">${t('ui.improvedPrompt')}</span>
           <div style="display: flex; gap: 6px;">
-            <button id="octoprompt-copy" style="background: rgba(6, 182, 212, 0.3); color: #06b6d4; border: 1px solid #06b6d4; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;">📋 Copier</button>
-            <button id="octoprompt-paste" style="background: #06b6d4; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;">✨ Coller</button>
+            <button id="octoprompt-copy" style="background: rgba(6, 182, 212, 0.3); color: #06b6d4; border: 1px solid #06b6d4; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;">${t('ui.copy')}</button>
+            <button id="octoprompt-paste" style="background: #06b6d4; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;">${t('ui.paste')}</button>
           </div>
         </div>
         <div id="octoprompt-improved" style="color: #bfdbfe; font-size: 12px; line-height: 1.5; max-height: 150px; overflow-y: auto;">
@@ -650,7 +713,7 @@ function updateTooltip(analysis) {
   if (analysis.suggestions && analysis.suggestions.length > 0) {
     html += `
       <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px;">
-        <div style="color: #f97316; font-size: 13px; font-weight: 600; margin-bottom: 8px;">💡 Suggestions</div>
+        <div style="color: #f97316; font-size: 13px; font-weight: 600; margin-bottom: 8px;">${t('ui.suggestions')}</div>
         <div style="max-height: 120px; overflow-y: auto;">
     `;
     
@@ -681,8 +744,8 @@ function updateTooltip(analysis) {
     navigator.clipboard.writeText(analysis.improvedPrompt);
     const btn = document.getElementById('octoprompt-copy');
     if (btn) {
-      btn.textContent = '✓ Copié!';
-      setTimeout(() => { btn.textContent = '📋 Copier'; }, 2000);
+      btn.textContent = t('ui.copied');
+      setTimeout(() => { btn.textContent = t('ui.copy'); }, 2000);
     }
   });
   
@@ -834,12 +897,14 @@ function initializeExtension() {
   createTooltip();
   
   // Charger les préférences
-  chrome.storage.sync.get(['autoAnalyze', 'aiMode', 'apiKey'], async (result) => {
+  chrome.storage.sync.get(['autoAnalyze', 'aiMode', 'apiKey', 'language'], async (result) => {
     isEnabled = result.autoAnalyze !== false;
     aiModeEnabled = result.aiMode === true;
+    currentLanguage = result.language || 'fr';
     
     console.log('🐙 Analyse automatique:', isEnabled ? 'activée' : 'désactivée');
     console.log('🤖 Mode IA:', aiModeEnabled ? 'activé' : 'désactivé');
+    console.log('🌐 Langue:', currentLanguage);
     
     // Initialiser le moteur IA si activé
     if (aiModeEnabled && typeof aiEngine !== 'undefined') {
@@ -897,6 +962,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('🤖 Mode IA:', aiModeEnabled ? 'ON' : 'OFF');
     if (aiModeEnabled && typeof aiEngine !== 'undefined') {
       aiEngine.initialize();
+    }
+  } else if (message.action === 'updateLanguage') {
+    currentLanguage = message.language;
+    console.log('🌐 Langue changée:', currentLanguage);
+    // Ré-analyser le prompt actuel avec la nouvelle langue
+    if (lastAnalyzedText) {
+      analyzePrompt(lastAnalyzedText).then(updateTooltip);
     }
   } else if (message.action === 'updateApiKey' || message.action === 'updateProvider') {
     if (typeof aiEngine !== 'undefined') {

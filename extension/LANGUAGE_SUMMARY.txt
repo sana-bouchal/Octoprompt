@@ -1,0 +1,58 @@
+═══════════════════════════════════════════════════════════════
+  🌐 OCTOPROMPT - FONCTIONNALITÉ MULTILINGUE AJOUTÉE
+═══════════════════════════════════════════════════════════════
+
+✅ MODIFICATIONS EFFECTUÉES :
+
+📄 popup.html
+  └─ Ajout du toggle "Langue: Français/English"
+  └─ IDs ajoutés pour la traduction dynamique
+
+📄 popup.js
+  └─ Objet translations (fr/en) avec tous les textes
+  └─ Fonction updateTexts() pour changer la langue
+  └─ Gestion du toggle languageToggle
+  └─ Sauvegarde de la préférence dans chrome.storage
+  └─ Envoi du message 'updateLanguage' au content script
+
+📄 content.js
+  └─ Variable currentLanguage ('fr' par défaut)
+  └─ Objet i18n avec traductions complètes
+  └─ Fonction t(key) pour accéder aux traductions
+  └─ PROMPT_RULES adaptées avec mots-clés bilingues
+  └─ generateImprovedPrompt() en deux langues
+  └─ Interface updateTooltip() traduite
+  └─ Gestion du message 'updateLanguage'
+  └─ Chargement de la langue depuis chrome.storage
+
+═══════════════════════════════════════════════════════════════
+  🎯 UTILISATION
+═══════════════════════════════════════════════════════════════
+
+1. Ouvrir le popup OctoPrompt
+2. Trouver le toggle "Langue: Français"
+3. Activer pour passer en anglais
+4. Tous les textes changent instantanément
+
+═══════════════════════════════════════════════════════════════
+  📦 CE QUI EST TRADUIT
+═══════════════════════════════════════════════════════════════
+
+✓ Interface popup (titre, labels, boutons)
+✓ Tooltip d'analyse (titre, sections, boutons)
+✓ Noms et suggestions des 8 règles
+✓ Génération de prompts améliorés
+✓ Messages de l'IA (chargement, erreurs)
+✓ Mots-clés de détection (verbes, rôles, styles...)
+
+═══════════════════════════════════════════════════════════════
+  🔧 TECHNIQUE
+═══════════════════════════════════════════════════════════════
+
+• Langue par défaut : Français
+• Persistance : chrome.storage.sync
+• Communication : chrome.runtime.sendMessage
+• Re-analyse automatique au changement
+• Compatible avec Mode Règles ET Mode IA
+
+═══════════════════════════════════════════════════════════════

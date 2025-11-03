@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Langue OctoPrompt</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #1a1f4d; color: white; }
+    .test { background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 8px; }
+    .pass { border-left: 4px solid #10b981; }
+    .info { border-left: 4px solid #06b6d4; }
+    code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+    h1 { color: #60a5fa; }
+    h2 { color: #06b6d4; }
+  </style>
+</head>
+<body>
+  <h1>🌐 Test Fonctionnalité Multilingue</h1>
+  
+  <div class="test info">
+    <h2>📋 Instructions</h2>
+    <ol>
+      <li>Ouvrez cette page dans un navigateur avec l'extension OctoPrompt installée</li>
+      <li>Ouvrez le popup de l'extension</li>
+      <li>Testez le toggle de langue</li>
+      <li>Vérifiez que tout change en temps réel</li>
+    </ol>
+  </div>
+
+  <div class="test pass">
+    <h2>✅ Checklist de Test</h2>
+    <ul>
+      <li>☐ Le toggle "Langue: Français" est visible dans le popup</li>
+      <li>☐ Cliquer change le label en "Language: English"</li>
+      <li>☐ Les autres labels changent aussi (Mode IA, etc.)</li>
+      <li>☐ La préférence est sauvegardée (recharger la page)</li>
+    </ul>
+  </div>
+
+  <div class="test pass">
+    <h2>🧪 Test avec un Prompt</h2>
+    <p>Tapez un prompt dans le champ ci-dessous et observez :</p>
+    <textarea id="testPrompt" style="width: 100%; height: 100px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #06b6d4;" placeholder="Écrivez un prompt ici..."></textarea>
+    <br><br>
+    <p>Vérifiez que :</p>
+    <ul>
+      <li>☐ Le tooltip OctoPrompt apparaît</li>
+      <li>☐ Les textes sont en français par défaut</li>
+      <li>☐ Changer la langue dans le popup change les textes du tooltip</li>
+      <li>☐ Le prompt amélioré est généré dans la bonne langue</li>
+    </ul>
+  </div>
+
+  <div class="test info">
+    <h2>🔍 Console Debug</h2>
+    <p>Ouvrez la console (F12) et vérifiez les messages :</p>
+    <ul>
+      <li><code>🌐 Langue: fr</code> ou <code>🌐 Langue: en</code></li>
+      <li><code>🐙 Message reçu: {action: "updateLanguage", language: "en"}</code></li>
+      <li><code>🌐 Langue changée: en</code></li>
+    </ul>
+  </div>
+
+  <div class="test pass">
+    <h2>🎯 Tests Avancés</h2>
+    <h3>Mode Règles 📋</h3>
+    <ul>
+      <li>☐ Les noms des règles sont traduits</li>
+      <li>☐ Les suggestions sont dans la bonne langue</li>
+    </ul>
+    <h3>Mode IA 🤖</h3>
+    <ul>
+      <li>☐ Le message "L'IA réfléchit" / "AI is thinking" apparaît</li>
+      <li>☐ Le prompt amélioré par l'IA respecte la langue</li>
+    </ul>
+  </div>
+
+  <script>
+    // Simuler un champ de prompt pour OctoPrompt
+    const textarea = document.getElementById('testPrompt');
+    textarea.addEventListener('input', () => {
+      console.log('📝 Prompt saisi:', textarea.value);
+    });
+  </script>
+</body>
+</html>

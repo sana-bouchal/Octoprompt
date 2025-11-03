@@ -1,7 +1,42 @@
+// Traductions
+const translations = {
+  fr: {
+    subtitle: "Donnez des bras à vos idées",
+    extensionActive: "Extension active",
+    extensionPaused: "Extension en pause",
+    autoAnalyze: "Activer l'analyse automatique",
+    aiMode: "Mode IA",
+    language: "Langue: Français",
+    saved: "✓ Enregistré!",
+    save: "Enregistrer",
+    apiKeyPlaceholder: "Clé API",
+    geminiHint: 'Pour Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #06b6d4;">Obtenir une clé gratuite</a>',
+    openaiHint: 'Pour OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #06b6d4;">Obtenir une clé</a> (payant)',
+    geminiPlaceholder: "Clé API Gemini",
+    openaiPlaceholder: "Clé API OpenAI (sk-...)"
+  },
+  en: {
+    subtitle: "Give arms to your ideas",
+    extensionActive: "Extension active",
+    extensionPaused: "Extension paused",
+    autoAnalyze: "Enable automatic analysis",
+    aiMode: "AI Mode",
+    language: "Language: English",
+    saved: "✓ Saved!",
+    save: "Save",
+    apiKeyPlaceholder: "API Key",
+    geminiHint: 'For Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #06b6d4;">Get a free key</a>',
+    openaiHint: 'For OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #06b6d4;">Get a key</a> (paid)',
+    geminiPlaceholder: "Gemini API Key",
+    openaiPlaceholder: "OpenAI API Key (sk-...)"
+  }
+};
+
 // Gestion du toggle pour l'activation/désactivation de l'analyse automatique
 document.addEventListener('DOMContentLoaded', () => {
   const autoAnalyzeToggle = document.getElementById('autoAnalyze');
   const aiModeToggle = document.getElementById('aiMode');
+  const languageToggle = document.getElementById('languageToggle');
   const statusText = document.getElementById('statusText');
   const apiConfigSection = document.getElementById('apiConfigSection');
   const apiProviderSelect = document.getElementById('aiProvider');
@@ -9,36 +44,71 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveApiKeyBtn = document.getElementById('saveApiKey');
   const apiHint = document.getElementById('apiHint');
 
+  let currentLang = 'fr';
+
+  // Fonction pour mettre à jour les textes
+  function updateTexts(lang) {
+    const t = translations[lang];
+    document.getElementById('headerSubtitle').textContent = t.subtitle;
+    document.getElementById('statusText').textContent = autoAnalyzeToggle.checked ? t.extensionActive : t.extensionPaused;
+    document.getElementById('autoAnalyzeLabel').textContent = t.autoAnalyze;
+    document.getElementById('aiModeLabel').textContent = t.aiMode;
+    document.getElementById('languageLabel').textContent = t.language;
+    saveApiKeyBtn.textContent = t.save;
+    updateApiHint(apiProviderSelect.value, lang);
+  }
+
   // Charger l'état sauvegardé
-  chrome.storage.sync.get(['autoAnalyze', 'aiMode', 'apiKey', 'aiProvider'], (result) => {
-    autoAnalyzeToggle.checked = result.autoAnalyze !== false; // true par défaut
+  chrome.storage.sync.get(['autoAnalyze', 'aiMode', 'apiKey', 'aiProvider', 'language'], (result) => {
+    autoAnalyzeToggle.checked = result.autoAnalyze !== false;
     aiModeToggle.checked = result.aiMode === true;
     apiProviderSelect.value = result.aiProvider || 'gemini';
+    currentLang = result.language || 'fr';
+    languageToggle.checked = currentLang === 'en';
+    
     if (result.apiKey) {
       apiKeyInput.value = result.apiKey;
     }
     if (result.aiMode) {
       apiConfigSection.style.display = 'block';
     }
-    updateApiHint(result.aiProvider || 'gemini');
+    updateTexts(currentLang);
   });
 
   // Mettre à jour le hint selon le provider
-  function updateApiHint(provider) {
+  function updateApiHint(provider, lang = currentLang) {
+    const t = translations[lang];
     if (provider === 'gemini') {
-      apiHint.innerHTML = 'Pour Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #06b6d4;">Obtenir une clé gratuite</a>';
-      apiKeyInput.placeholder = 'Clé API Gemini';
+      apiHint.innerHTML = t.geminiHint;
+      apiKeyInput.placeholder = t.geminiPlaceholder;
     } else {
-      apiHint.innerHTML = 'Pour OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #06b6d4;">Obtenir une clé</a> (payant)';
-      apiKeyInput.placeholder = 'Clé API OpenAI (sk-...)';
+      apiHint.innerHTML = t.openaiHint;
+      apiKeyInput.placeholder = t.openaiPlaceholder;
     }
   }
+
+  // Toggle de langue
+  languageToggle.addEventListener('change', () => {
+    currentLang = languageToggle.checked ? 'en' : 'fr';
+    chrome.storage.sync.set({ language: currentLang });
+    updateTexts(currentLang);
+    
+    // Informer le content script
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: 'updateLanguage', 
+          language: currentLang 
+        });
+      }
+    });
+  });
 
   // Changement de provider
   apiProviderSelect.addEventListener('change', () => {
     const provider = apiProviderSelect.value;
     chrome.storage.sync.set({ aiProvider: provider });
-    updateApiHint(provider);
+    updateApiHint(provider, currentLang);
     
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
@@ -55,7 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isEnabled = autoAnalyzeToggle.checked;
     chrome.storage.sync.set({ autoAnalyze: isEnabled });
     
-    statusText.textContent = isEnabled ? 'Extension active' : 'Extension en pause';
+    const t = translations[currentLang];
+    statusText.textContent = isEnabled ? t.extensionActive : t.extensionPaused;
     
     // Informer le content script du changement
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -91,9 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (apiKey) {
       chrome.storage.sync.set({ apiKey, aiProvider: provider }, () => {
-        saveApiKeyBtn.textContent = '✓ Enregistré!';
+        const t = translations[currentLang];
+        saveApiKeyBtn.textContent = t.saved;
         setTimeout(() => {
-          saveApiKeyBtn.textContent = 'Enregistrer';
+          saveApiKeyBtn.textContent = t.save;
         }, 2000);
         
         // Informer le content script

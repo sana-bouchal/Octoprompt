@@ -1,0 +1,74 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║    🌐  GUIDE RAPIDE : CHANGER LA LANGUE D'OCTOPROMPT         ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────┐
+│  ÉTAPE 1 : Ouvrir le Popup                                    │
+└───────────────────────────────────────────────────────────────┘
+
+   1. Cliquez sur l'icône 🐙 OctoPrompt dans la barre d'extensions
+   2. Le popup s'ouvre avec l'interface
+
+┌───────────────────────────────────────────────────────────────┐
+│  ÉTAPE 2 : Localiser le Toggle de Langue                     │
+└───────────────────────────────────────────────────────────────┘
+
+   Vous verrez une ligne avec :
+   
+   📌 Langue: Français  [  ○─────  ]
+   
+   ou
+   
+   📌 Language: English  [  ─────○  ]
+
+┌───────────────────────────────────────────────────────────────┐
+│  ÉTAPE 3 : Changer la Langue                                 │
+└───────────────────────────────────────────────────────────────┘
+
+   • Toggle à GAUCHE (○─────) = Français 🇫🇷
+   • Toggle à DROITE (─────○) = Anglais 🇬🇧
+   
+   → Cliquez sur le toggle pour basculer
+
+┌───────────────────────────────────────────────────────────────┐
+│  QUE SE PASSE-T-IL ?                                          │
+└───────────────────────────────────────────────────────────────┘
+
+   ✓ L'interface change IMMÉDIATEMENT
+   ✓ Tous les textes sont traduits
+   ✓ Les suggestions aussi
+   ✓ Le prompt amélioré aussi
+   ✓ La préférence est SAUVEGARDÉE
+
+┌───────────────────────────────────────────────────────────────┐
+│  EXEMPLES DE TRADUCTION                                       │
+└───────────────────────────────────────────────────────────────┘
+
+   FRANÇAIS                      ANGLAIS
+   ────────────────────────────────────────────────────
+   🐙 OctoPrompt                🐙 OctoPrompt
+   Extension active             Extension active
+   Mode IA                      AI Mode
+   ✨ Prompt Amélioré           ✨ Improved Prompt
+   💡 Suggestions               💡 Suggestions
+   📋 Copier                    📋 Copy
+   ✨ Coller                    ✨ Paste
+   🤖 L'IA réfléchit...         🤖 AI is thinking...
+
+┌───────────────────────────────────────────────────────────────┐
+│  COMPATIBLE AVEC                                              │
+└───────────────────────────────────────────────────────────────┘
+
+   ✓ Mode Règles 📋
+   ✓ Mode IA 🤖 (Gemini & OpenAI)
+   ✓ ChatGPT
+   ✓ Claude
+   ✓ Gemini
+   ✓ Perplexity
+
+╔═══════════════════════════════════════════════════════════════╗
+║  💡 ASTUCE : La langue est synchronisée entre tous vos       ║
+║      onglets et reste active après un redémarrage !           ║
+╚═══════════════════════════════════════════════════════════════╝
