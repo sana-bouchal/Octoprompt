@@ -633,7 +633,7 @@ function updateTooltip(analysis) {
   
   // Si analysis est null (loading), afficher le loader dans le tooltip
   if (analysis === null) {
-    octopus.style.display = 'none'; // Masquer le poulpe pendant le chargement
+    octopus.style.display = 'flex'; // Afficher le poulpe avec animation pendant le chargement
     tooltip.innerHTML = `
       <div style="text-align: center; padding: 30px;">
         <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid rgba(96, 165, 250, 0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
@@ -645,8 +645,8 @@ function updateTooltip(analysis) {
         }
       </style>
     `;
-    // Ouvrir automatiquement le tooltip pendant le chargement
-    tooltip.style.display = 'block';
+    // NE PAS ouvrir automatiquement - l'utilisateur doit cliquer sur le poulpe
+    // tooltip.style.display = 'block'; // ← SUPPRIMÉ
     return;
   }
   
@@ -872,18 +872,27 @@ function attachToInput(input) {
         isAnalyzing = true;
         lastAnalyzedText = text;
         
-        // Afficher le loader pendant que l'IA réfléchit
+        // En mode IA, afficher le loader mais NE PAS ouvrir automatiquement le tooltip
         if (aiModeEnabled) {
-          updateTooltip(null); // null = afficher le loader
+          updateTooltip(null); // null = préparer le loader (mais ne pas l'afficher)
+        } else {
+          // En mode règles, juste analyser sans ouvrir
+          const analysis = await analyzePrompt(text);
+          updateTooltip(analysis);
         }
         
-        const analysis = await analyzePrompt(text);
-        updateTooltip(analysis);
+        if (aiModeEnabled) {
+          const analysis = await analyzePrompt(text);
+          updateTooltip(analysis);
+        }
         
-        // Garder le tooltip ouvert si c'était déjà ouvert
+        // Ne JAMAIS ouvrir automatiquement le tooltip - l'utilisateur doit cliquer sur le poulpe
         const tooltip = document.getElementById('octoprompt-tooltip');
         if (tooltip && tooltip.style.display === 'block') {
-          // Le tooltip reste ouvert, on met juste à jour son contenu
+          // Si le tooltip était déjà ouvert manuellement, on le garde ouvert et on met à jour
+        } else {
+          // Sinon, on le garde fermé
+          if (tooltip) tooltip.style.display = 'none';
         }
         
         isAnalyzing = false;
