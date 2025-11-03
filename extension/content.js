@@ -651,7 +651,7 @@ function createTooltip() {
   tooltip.id = 'octoprompt-tooltip';
   tooltip.style.cssText = `
     position: fixed;
-    bottom: 100px;
+    bottom: 30px;
     right: 30px;
     min-width: 320px;
     max-width: 400px;
