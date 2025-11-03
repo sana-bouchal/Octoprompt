@@ -583,6 +583,8 @@ function createOctopusButton() {
     if (tooltip) {
       const isVisible = tooltip.style.display !== 'none';
       tooltip.style.display = isVisible ? 'none' : 'block';
+      // Masquer le poulpe quand le tooltip est visible
+      button.style.display = isVisible ? 'flex' : 'none';
     }
   });
   
@@ -631,7 +633,7 @@ function updateTooltip(analysis) {
   
   // Si analysis est null (loading), afficher le loader dans le tooltip
   if (analysis === null) {
-    octopus.style.display = 'flex';
+    octopus.style.display = 'none'; // Masquer le poulpe pendant le chargement
     tooltip.innerHTML = `
       <div style="text-align: center; padding: 30px;">
         <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid rgba(96, 165, 250, 0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
@@ -648,8 +650,7 @@ function updateTooltip(analysis) {
     return;
   }
   
-  // Afficher le bouton poulpe
-  octopus.style.display = 'flex';
+  // Le poulpe sera affiché ou masqué selon l'état du tooltip (géré plus bas)
   
   // Mettre à jour le score badge si présent (VERSION 1)
   const scoreIndicator = document.getElementById('score-indicator');
@@ -729,15 +730,23 @@ function updateTooltip(analysis) {
   }
   
   tooltip.innerHTML = html;
-  // Préserver l'état d'ouverture : si le tooltip était ouvert, le garder ouvert
+  // Préserver l'état d'ouverture : si le tooltip était ouvert, le garder ouvert et masquer le poulpe
   const wasOpen = tooltip.style.display === 'block';
   if (wasOpen) {
     tooltip.style.display = 'block';
+    octopus.style.display = 'none'; // Garder le poulpe masqué si le tooltip est ouvert
+  } else {
+    // Si le tooltip n'est pas ouvert, afficher le poulpe
+    octopus.style.display = 'flex';
   }
   
   // Event listeners
   document.getElementById('octoprompt-close')?.addEventListener('click', () => {
     tooltip.style.display = 'none';
+    // Réafficher le poulpe quand on ferme le tooltip
+    if (octopusButton) {
+      octopusButton.style.display = 'flex';
+    }
   });
   
   document.getElementById('octoprompt-copy')?.addEventListener('click', () => {
