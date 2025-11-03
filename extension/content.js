@@ -28,7 +28,10 @@ const i18n = {
       paste: '✨ Coller',
       copied: '✓ Copié!',
       suggestions: '💡 Suggestions',
-      aiThinking: '🤖 L\'IA réfléchit...'
+      aiThinking: '🤖 L\'IA réfléchit...',
+      fixSpelling: '✍️ Corriger l\'orthographe',
+      fixing: '⏳ Correction...',
+      fixed: '✓ Corrigé!'
     }
   },
   en: {
@@ -51,7 +54,10 @@ const i18n = {
       paste: '✨ Paste',
       copied: '✓ Copied!',
       suggestions: '💡 Suggestions',
-      aiThinking: '🤖 AI is thinking...'
+      aiThinking: '🤖 AI is thinking...',
+      fixSpelling: '✍️ Fix spelling',
+      fixing: '⏳ Fixing...',
+      fixed: '✓ Fixed!'
     }
   }
 };
@@ -745,6 +751,27 @@ function updateTooltip(analysis) {
     </div>
   `;
   
+  // Bouton pour corriger l'orthographe uniquement
+  html += `
+    <div style="margin-bottom: 15px;">
+      <button id="octoprompt-fix-spelling" style="
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #8b5cf6, #a855f7);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+      ">
+        ${t('ui.fixSpelling')}
+      </button>
+    </div>
+  `;
+  
   if (analysis.improvedPrompt) {
     html += `
       <div style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 12px; padding: 12px; margin-bottom: 15px;">
@@ -812,6 +839,10 @@ function updateTooltip(analysis) {
   document.getElementById('octoprompt-paste')?.addEventListener('click', () => {
     pasteImprovedPrompt(analysis.improvedPrompt);
   });
+  
+  document.getElementById('octoprompt-fix-spelling')?.addEventListener('click', async () => {
+    await fixSpellingOnly();
+  });
 }
 
 function hideTooltip() {
@@ -821,6 +852,95 @@ function hideTooltip() {
   if (octopusButton) {
     octopusButton.style.display = 'none';
   }
+}
+
+// ========== CORRECTION ORTHOGRAPHE UNIQUEMENT ==========
+async function fixSpellingOnly() {
+  const btn = document.getElementById('octoprompt-fix-spelling');
+  if (!btn) return;
+  
+  const originalText = btn.textContent;
+  btn.textContent = t('ui.fixing');
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor = 'wait';
+  
+  try {
+    const input = findPromptInput();
+    if (!input) {
+      throw new Error('Champ de texte introuvable');
+    }
+    
+    const currentText = input.value || input.textContent || '';
+    
+    if (!currentText.trim()) {
+      throw new Error('Aucun texte à corriger');
+    }
+    
+    // Utiliser l'IA pour corriger uniquement l'orthographe
+    let correctedText = currentText;
+    
+    if (aiModeEnabled && typeof aiEngine !== 'undefined') {
+      // Mode IA : utiliser l'API
+      correctedText = await aiEngine.fixSpelling(currentText, currentLanguage);
+    } else {
+      // Mode règles : corrections basiques
+      correctedText = basicSpellingFix(currentText);
+    }
+    
+    // Remplacer le texte dans le champ
+    if (input.tagName === 'TEXTAREA' || input.tagName === 'INPUT') {
+      input.value = correctedText;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (input.contentEditable === 'true') {
+      input.textContent = correctedText;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    
+    // Feedback succès
+    btn.textContent = t('ui.fixed');
+    btn.style.background = 'linear-gradient(135deg, #10b981, #06b6d4)';
+    
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = 'linear-gradient(135deg, #8b5cf6, #a855f7)';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }, 2000);
+    
+  } catch (error) {
+    console.error('❌ Erreur correction orthographe:', error);
+    btn.textContent = '❌ Erreur';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }, 2000);
+  }
+}
+
+// Corrections basiques sans IA
+function basicSpellingFix(text) {
+  // Corrections courantes en français
+  const corrections = {
+    // Accents manquants
+    'a': 'à',
+    'ou': 'où',
+    // Majuscules en début de phrase
+  };
+  
+  let fixed = text;
+  
+  // Majuscule en début de phrase
+  fixed = fixed.replace(/(^|[.!?]\s+)([a-z])/g, (match, p1, p2) => p1 + p2.toUpperCase());
+  
+  // Espaces avant ponctuation (règle française)
+  fixed = fixed.replace(/\s+([;:!?])/g, ' $1');
+  fixed = fixed.replace(/([;:!?])(?!\s)/g, '$1 ');
+  
+  return fixed;
 }
 
 // ========== FONCTION POUR COLLER LE PROMPT AMÉLIORÉ ==========

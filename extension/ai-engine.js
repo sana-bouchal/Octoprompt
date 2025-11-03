@@ -334,6 +334,80 @@ Prompt à améliorer: ${originalPrompt}`;
       return null;
     }
   }
+
+  async fixSpelling(text, language = 'fr') {
+    if (!this.apiKey) {
+      console.log('🤖 Clé API manquante pour la correction');
+      return text;
+    }
+
+    try {
+      const systemPrompt = language === 'fr' 
+        ? `Tu es un correcteur d'orthographe et de grammaire français. 
+Corrige UNIQUEMENT les fautes d'orthographe, de grammaire et de ponctuation dans le texte suivant.
+Ne modifie PAS le sens, ne reformule PAS, ne change PAS le style.
+Retourne UNIQUEMENT le texte corrigé, sans commentaire, sans explication.`
+        : `You are a spelling and grammar checker.
+Fix ONLY spelling, grammar and punctuation errors in the following text.
+Do NOT change the meaning, do NOT rephrase, do NOT change the style.
+Return ONLY the corrected text, without comments or explanations.`;
+
+      if (this.provider === 'gemini') {
+        const response = await fetch(`${this.geminiURL}?key=${this.apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: `${systemPrompt}\n\nTexte:\n${text}` }]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 2000,
+            }
+          })
+        });
+
+        if (!response.ok) {
+          console.error('❌ Erreur API Gemini');
+          return text;
+        }
+        
+        const data = await response.json();
+        const corrected = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        return corrected || text;
+        
+      } else {
+        const response = await fetch(this.openaiURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify({
+            model: this.openaiModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: text }
+            ],
+            temperature: 0.1,
+            max_tokens: 2000
+          })
+        });
+
+        if (!response.ok) {
+          console.error('❌ Erreur API OpenAI');
+          return text;
+        }
+        
+        const data = await response.json();
+        const corrected = data.choices[0]?.message?.content?.trim();
+        return corrected || text;
+      }
+    } catch (error) {
+      console.error('❌ Erreur correction orthographe IA:', error);
+      return text;
+    }
+  }
 }
 
 // Instance globale
