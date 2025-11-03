@@ -414,7 +414,7 @@ function createOctopusButton() {
     border-radius: 50% !important;
     cursor: pointer !important;
     z-index: 999998 !important;
-    display: none !important;
+    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-size: 32px !important;
