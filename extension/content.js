@@ -195,9 +195,15 @@ async function analyzePrompt(prompt) {
   
   let improvedPrompt = score < 100 ? generateImprovedPrompt(prompt, failedRules) : undefined;
 
-  // Sauvegarder dans l'historique
-  if (improvedPrompt && typeof promptHistory !== 'undefined') {
-    promptHistory.addPrompt(prompt, improvedPrompt, score, 'rules');
+  // Sauvegarder dans l'historique intelligent
+  if (typeof historyManager !== 'undefined') {
+    historyManager.add({
+      originalPrompt: prompt,
+      improvedPrompt: improvedPrompt,
+      score: score,
+      mode: aiModeEnabled ? 'ai' : 'rules',
+      language: currentLanguage
+    });
   }
 
   return {
@@ -1091,6 +1097,13 @@ function initializeExtension() {
   // Créer le poulpe et le tooltip dès le départ
   createOctopusButton();
   createTooltip();
+  
+  // Initialiser l'historique
+  if (typeof historyManager !== 'undefined') {
+    historyManager.initialize().then(() => {
+      console.log('📚 Historique intelligent initialisé');
+    });
+  }
   
   // Charger les préférences
   chrome.storage.sync.get(['autoAnalyze', 'aiMode', 'apiKey', 'language'], async (result) => {

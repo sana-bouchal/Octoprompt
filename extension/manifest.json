@@ -42,7 +42,7 @@
         "https://bard.google.com/*",
         "file://*"
       ],
-      "js": ["ai-engine.js", "content.js"],
+      "js": ["history-manager.js", "ai-engine.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_end",
       "match_about_blank": true,

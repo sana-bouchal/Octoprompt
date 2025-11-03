@@ -181,6 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+  
+  // Bouton pour ouvrir la page d'historique
+  document.getElementById('historyBtn')?.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('history.html') });
+  });
 });
 
 // ========== TEMPLATES & HISTORIQUE ==========
