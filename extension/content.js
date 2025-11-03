@@ -423,7 +423,7 @@ function createOctopusButton() {
     animation: bounce 2s infinite !important;
   `;
   
-  // VERSION 5: Mini-logo OctoPrompt
+  // VERSION 5: Mini-logo OctoPrompt avec indicateur
   button.innerHTML = `
     <svg width="45" height="45" viewBox="0 0 45 45">
       <defs>
@@ -437,6 +437,18 @@ function createOctopusButton() {
       <text x="22.5" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="url(#logoGradient)">🐙</text>
       <circle cx="22.5" cy="22.5" r="19" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.5"/>
     </svg>
+    <div id="octoprompt-indicator" style="
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #64748b;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    "></div>
   `;
   
   /* VERSION 2: Poulpe SVG stylisé
@@ -559,7 +571,7 @@ function createOctopusButton() {
   
   button.title = 'OctoPrompt - Analyser mon prompt';
   
-  // Animation bounce simple + pulse pour les badges
+  // Animation bounce simple + pulse pour les badges + tentacule
   const style = document.createElement('style');
   style.textContent = `
     @keyframes bounce {
@@ -570,9 +582,23 @@ function createOctopusButton() {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.1); opacity: 0.8; }
     }
+    @keyframes tentacleWave {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+    }
     #octoprompt-octopus:hover {
       transform: scale(1.1) !important;
       box-shadow: 0 12px 40px rgba(96, 165, 250, 0.4) !important;
+    }
+    .octoprompt-analyzing {
+      background: linear-gradient(135deg, #f59e0b, #f97316) !important;
+      opacity: 1 !important;
+      animation: tentacleWave 1s infinite !important;
+    }
+    .octoprompt-ready {
+      background: linear-gradient(135deg, #10b981, #06b6d4) !important;
+      opacity: 1 !important;
+      animation: pulse 2s infinite !important;
     }
   `;
   document.head.appendChild(style);
@@ -591,6 +617,31 @@ function createOctopusButton() {
   document.body.appendChild(button);
   octopusButton = button;
   return button;
+}
+
+// Fonction pour mettre à jour l'indicateur du poulpe
+function updateOctopusIndicator(state) {
+  const indicator = document.getElementById('octoprompt-indicator');
+  if (!indicator) return;
+  
+  // Retirer toutes les classes
+  indicator.classList.remove('octoprompt-analyzing', 'octoprompt-ready');
+  
+  switch(state) {
+    case 'analyzing':
+      // Orange animé = analyse en cours
+      indicator.classList.add('octoprompt-analyzing');
+      break;
+    case 'ready':
+      // Vert pulsant = analyse terminée
+      indicator.classList.add('octoprompt-ready');
+      break;
+    case 'idle':
+    default:
+      // Caché = pas d'analyse
+      indicator.style.opacity = '0';
+      break;
+  }
 }
 
 function createTooltip() {
@@ -872,6 +923,9 @@ function attachToInput(input) {
         isAnalyzing = true;
         lastAnalyzedText = text;
         
+        // Indiquer que l'analyse commence
+        updateOctopusIndicator('analyzing');
+        
         // En mode IA, afficher le loader mais NE PAS ouvrir automatiquement le tooltip
         if (aiModeEnabled) {
           updateTooltip(null); // null = préparer le loader (mais ne pas l'afficher)
@@ -886,6 +940,9 @@ function attachToInput(input) {
           updateTooltip(analysis);
         }
         
+        // Indiquer que l'analyse est terminée
+        updateOctopusIndicator('ready');
+        
         // Ne JAMAIS ouvrir automatiquement le tooltip - l'utilisateur doit cliquer sur le poulpe
         const tooltip = document.getElementById('octoprompt-tooltip');
         if (tooltip && tooltip.style.display === 'block') {
@@ -898,6 +955,7 @@ function attachToInput(input) {
         isAnalyzing = false;
       } else {
         hideTooltip();
+        updateOctopusIndicator('idle');
         lastAnalyzedText = '';
       }
     }, 800);
