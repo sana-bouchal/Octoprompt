@@ -177,6 +177,20 @@ async function analyzePrompt(prompt) {
     
     if (aiAnalysis) {
       console.log('✅ Analyse IA utilisée');
+      
+      // Sauvegarder dans l'historique intelligent
+      if (typeof historyManager !== 'undefined') {
+        historyManager.add({
+          originalPrompt: prompt,
+          improvedPrompt: aiAnalysis.improvedPrompt,
+          score: aiAnalysis.score,
+          mode: 'ai',
+          language: currentLanguage
+        }).then(() => {
+          console.log('✅ Entrée ajoutée à l\'historique (Mode IA)');
+        });
+      }
+      
       return aiAnalysis;
     }
     
